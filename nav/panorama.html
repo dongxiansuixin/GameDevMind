@@ -486,9 +486,9 @@ function buildTree() {
 // ============================================================
 //  LAYOUT ALGORITHM
 // ============================================================
-const UNIT_W = 135;   // horizontal pixels per leaf unit
-const LEVEL_H = 105;  // vertical pixels per level
-const TREE_GAP = 160; // gap between trees
+const UNIT_H = 50;    // vertical pixels between sibling leaves
+const LEVEL_W = 140;  // horizontal pixels per depth level
+const TREE_GAP = 120; // vertical gap between trees
 
 function computeWidth(node) {
   if (node.children.length === 0 || node.collapsed) {
@@ -505,31 +505,31 @@ function assignPositions(node, x, y) {
   node.x = x;
   node.y = y;
   if (node.children.length === 0 || node.collapsed) return;
-  const totalPx = (node._width - 1) * UNIT_W;
-  let startX = x - totalPx / 2;
+  const totalPy = (node._width - 1) * UNIT_H;
+  let startY = y - totalPy / 2;
   for (const child of node.children) {
-    const childPx = (child._width - 1) * UNIT_W;
-    const cx = startX + childPx / 2;
-    assignPositions(child, cx, y + LEVEL_H);
-    startX += child._width * UNIT_W;
+    const childPy = (child._width - 1) * UNIT_H;
+    const cy = startY + childPy / 2;
+    assignPositions(child, x + LEVEL_W, cy);
+    startY += child._width * UNIT_H;
   }
 }
 
 function layoutAll() {
   // Compute widths
   for (const root of allRoots) computeWidth(root);
-  // Layout each tree independently starting at x=0
+  // Layout each tree independently starting at y=0
   for (const root of allRoots) assignPositions(root, 0, 0);
-  // Compute bounding boxes and stack trees horizontally
-  let offsetX = 0;
+  // Compute bounding boxes and stack trees vertically
+  let offsetY = 0;
   for (const root of allRoots) {
     const bbox = computeBBox(root);
-    const shift = offsetX - bbox.minX;
-    shiftTree(root, shift, 0);
-    offsetX += (bbox.maxX - bbox.minX) + TREE_GAP;
+    const shift = offsetY - bbox.minY;
+    shiftTree(root, 0, shift);
+    offsetY += (bbox.maxY - bbox.minY) + TREE_GAP;
   }
-  offsetX -= TREE_GAP; // remove last gap
-  return offsetX;
+  offsetY -= TREE_GAP; // remove last gap
+  return offsetY;
 }
 
 function computeBBox(node) {
@@ -606,8 +606,7 @@ function renderAll() {
       const y1 = n.y - minY + pad;
       const x2 = child.x - minX + pad;
       const y2 = child.y - minY + pad;
-      const mx = (x1 + x2) / 2;
-      const pathD = `M${x1},${y1} C${x1},${(y1+y2)/2} ${x2},${(y1+y2)/2} ${x2},${y2}`;
+      const pathD = `M${x1},${y1} C${(x1+x2)/2},${y1} ${(x1+x2)/2},${y2} ${x2},${y2}`;
       edgeHtml += `<path class="edge-line" d="${pathD}" data-parent="${n.name}" data-child="${child.name}"/>`;
     }
   }
@@ -653,7 +652,7 @@ function renderAll() {
 // ============================================================
 //  INTERACTION
 // ============================================================
-let scale = 0.65;
+let scale = 0.75;
 let tx = 0, ty = 0;
 let activeModule = -1; // -1 = all
 
