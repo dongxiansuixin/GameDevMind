@@ -128,7 +128,7 @@ func (c *LeaderboardCache) startRefresher() {
 
 ---
 
-## 最终代码 + 上线效果
+## 最终成果
 
 基于 ChatGPT 的框架，我做了以下人工调整后上线：
 
