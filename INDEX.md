@@ -159,33 +159,10 @@
 - [游戏开发新人](mds/topics/游戏开发新人.md)
 - [游戏程序员职业发展路径](mds/topics/游戏程序员职业发展路径.md)
 
-## 📦 配套资源
-
-### 实战案例
-
-- [SLG手游内存泄漏](cases/memory-leak-slg.md)
-- [MOBA角色回弹](cases/network-reconciliation.md)
-- [开放世界卡顿](cases/drawcall-optimization.md)
-- [服务器死锁](cases/server-deadlock.md)
-- [排行榜查询超时](cases/leaderboard-optimization.md)
-
-### AI 实战对话
-
-- [用 Claude 设计内存池](ai-cases/cpp-memory-pool.md)
-- [用 Cursor 优化 Draw Call](ai-cases/unity-drawcall-optimization.md)
-- [用 ChatGPT 设计缓存方案](ai-cases/go-leaderboard-cache.md)
-
-### 配套代码
-
-- [代码示例总览](code/README.md)
-
 ## 📊 统计信息
 
-- **知识文档**: 118 篇
-- **实战案例**: 5 篇
-- **AI 对话**: 3 篇
-- **代码示例**: 7 个
-- **最后更新**: 2026-05-07 11:31:30
+- **总文档数**: 118
+- **最后更新**: 2026-05-07 11:42:47
 
 ## 💡 使用建议
 
