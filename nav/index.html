@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GameDevMind · 交互式导航</title>
+<style>
+:root {
+  --bg: #0d1117;
+  --surface: #161b22;
+  --border: #30363d;
+  --text: #c9d1d9;
+  --muted: #8b949e;
+  --accent: #58a6ff;
+  --red: #f85149;
+  --orange: #d2991d;
+  --yellow: #e3b341;
+  --green: #3fb950;
+  --blue: #58a6ff;
+  --purple: #bc8cff;
+  --radius: 8px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; line-height:1.6; min-height:100vh; }
+.header { background:var(--surface); border-bottom:1px solid var(--border); padding:20px 24px; position:sticky; top:0; z-index:100; }
+.header h1 { font-size:1.4rem; display:flex; align-items:center; gap:8px; }
+.header h1 span { color:var(--accent); }
+.header .subtitle { color:var(--muted); font-size:.85rem; margin-top:4px; }
+.container { max-width:1200px; margin:0 auto; padding:20px 24px; }
+.controls { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:24px; align-items:center; }
+.search-box { flex:1; min-width:200px; position:relative; }
+.search-box input { width:100%; padding:10px 16px 10px 38px; border:1px solid var(--border); border-radius:var(--radius); background:var(--surface); color:var(--text); font-size:.9rem; outline:none; transition:border-color .2s; }
+.search-box input:focus { border-color:var(--accent); }
+.search-box::before { content:'🔍'; position:absolute; left:12px; top:50%; transform:translateY(-50%); font-size:.8rem; }
+.filters { display:flex; gap:8px; flex-wrap:wrap; }
+.filter-group { display:flex; gap:4px; align-items:center; }
+.filter-group .label { color:var(--muted); font-size:.75rem; text-transform:uppercase; letter-spacing:.5px; white-space:nowrap; }
+.chip { padding:6px 14px; border-radius:20px; border:1px solid var(--border); background:var(--surface); color:var(--muted); font-size:.8rem; cursor:pointer; transition:all .2s; white-space:nowrap; user-select:none; }
+.chip:hover { border-color:var(--accent); color:var(--text); }
+.chip.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+.category-tabs { display:flex; gap:4px; margin-bottom:20px; overflow-x:auto; padding-bottom:4px; }
+.cat-tab { padding:8px 18px; border-radius:20px; border:1px solid var(--border); background:var(--surface); color:var(--muted); font-size:.82rem; cursor:pointer; transition:all .2s; white-space:nowrap; }
+.cat-tab:hover { border-color:var(--accent); color:var(--text); }
+.cat-tab.active { border-color:var(--accent); color:var(--accent); font-weight:600; }
+.cat-tab .count { font-size:.7rem; margin-left:4px; opacity:.6; }
+.stats { color:var(--muted); font-size:.8rem; margin-bottom:16px; }
+.doc-list { display:grid; gap:8px; }
+.doc-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:14px 18px; transition:border-color .2s,transform .15s; cursor:pointer; display:flex; align-items:center; gap:14px; }
+.doc-card:hover { border-color:var(--accent); transform:translateX(3px); }
+.doc-card .num { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.75rem; font-weight:700; flex-shrink:0; }
+.doc-card .info { flex:1; min-width:0; }
+.doc-card .title { font-weight:600; font-size:.9rem; color:var(--accent); }
+.doc-card .path { font-size:.75rem; color:var(--muted); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.doc-card .tags { display:flex; gap:4px; flex-shrink:0; flex-wrap:wrap; }
+.doc-card .tag { font-size:.65rem; padding:2px 8px; border-radius:10px; border:1px solid var(--border); white-space:nowrap; }
+.tag-l1 { color:var(--green); border-color:var(--green); }
+.tag-l2 { color:var(--yellow); border-color:var(--yellow); }
+.tag-l3 { color:var(--red); border-color:var(--red); }
+.tag-role { color:var(--purple); border-color:var(--purple); }
+.c1 { background:#1a3a2a; color:var(--green); } /* 基础 */
+.c2 { background:#2a1f0a; color:var(--orange); } /* 技术 */
+.c3 { background:#2a2a0a; color:var(--yellow); } /* 研发 */
+.c4 { background:#1a2a1a; color:#7ee787; } /* 生产 */
+.c5 { background:#0a1a2a; color:var(--blue); } /* 管理 */
+.c6 { background:#1a0a2a; color:var(--purple); } /* 运营 */
+.empty { text-align:center; padding:48px; color:var(--muted); }
+.paths-section { margin-top:32px; }
+.paths-section h2 { font-size:1.1rem; margin-bottom:16px; color:var(--text); }
+.path-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:18px; margin-bottom:12px; }
+.path-card h3 { font-size:.9rem; color:var(--accent); margin-bottom:8px; }
+.path-flow { display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+.path-step { padding:4px 12px; border-radius:12px; font-size:.78rem; font-weight:600; }
+.path-arrow { color:var(--muted); font-size:.8rem; }
+.code-link { display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border-radius:12px; background:rgba(88,166,255,.1); color:var(--accent); font-size:.72rem; text-decoration:none; }
+.code-link:hover { background:rgba(88,166,255,.2); }
+@media (max-width:768px) {
+  .doc-card .tags { display:none; }
+  .controls { flex-direction:column; }
+  .search-box { width:100%; }
+}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>🎮 GameDevMind <span>交互式导航</span></h1>
+  <div class="subtitle">搜索 · 筛选 · 查找你需要的游戏开发知识</div>
+</div>
+<div class="container">
+  <div class="controls">
+    <div class="search-box">
+      <input type="text" id="search" placeholder="搜索文档标题…" oninput="render()">
+    </div>
+    <div class="filters">
+      <div class="filter-group">
+        <span class="label">等级</span>
+        <span class="chip" onclick="toggleFilter('level','初级',this)">初级</span>
+        <span class="chip" onclick="toggleFilter('level','中级',this)">中级</span>
+        <span class="chip" onclick="toggleFilter('level','高级',this)">高级</span>
+      </div>
+      <div class="filter-group">
+        <span class="label">角色</span>
+        <span class="chip" onclick="toggleFilter('role','客户端',this)">客户端</span>
+        <span class="chip" onclick="toggleFilter('role','服务端',this)">服务端</span>
+      </div>
+    </div>
+  </div>
+  <div class="category-tabs" id="tabs"></div>
+  <div class="stats" id="stats"></div>
+  <div class="doc-list" id="list"></div>
+  <div class="paths-section">
+    <h2>📖 推荐学习路径</h2>
+    <div id="paths"></div>
+  </div>
+</div>
+
+<script>
+// ========== DATA ==========
+const COLORS=['#3fb950','#d2991d','#e3b341','#7ee787','#58a6ff','#bc8cff'];
+const CATS=['基础能力','技术能力','研发能力','生产能力','管理能力','运营能力'];
+const CAT_CLASS=['c1','c2','c3','c4','c5','c6'];
+const DOCS=[
+  // 1.基础能力
+  {t:'基础能力',p:'mds/1.基础能力/1.基础能力.md',c:1,l:0,r:''},
+  {t:'编程语言',p:'mds/1.基础能力/1.1.编程语言.md',c:1,l:0,r:''},
+  {t:'编程语言基础概念',p:'mds/1.基础能力/1.1.1.编程语言基础概念.md',c:1,l:1,r:'客户端,服务端'},
+  {t:'C++语言',p:'mds/1.基础能力/1.1.2.C++语言.md',c:1,l:2,r:'客户端,服务端',code:'code/1.基础能力/1.1.2.C++语言/'},
+  {t:'C#语言',p:'mds/1.基础能力/1.1.3.C#语言.md',c:1,l:1,r:'客户端'},
+  {t:'JS语言',p:'mds/1.基础能力/1.1.4.JS语言.md',c:1,l:1,r:'客户端'},
+  {t:'编程语言综合',p:'mds/1.基础能力/1.1.5.编程语言综合.md',c:1,l:2,r:'客户端,服务端'},
+  {t:'内存管理',p:'mds/1.基础能力/1.1.6.内存管理.md',c:1,l:2,r:'客户端,服务端'},
+  {t:'编程语言高阶概念',p:'mds/1.基础能力/1.1.7.编程语言高阶概念.md',c:1,l:3,r:'客户端,服务端'},
+  {t:'程序设计',p:'mds/1.基础能力/1.2.程序设计.md',c:1,l:0,r:''},
+  {t:'设计模式',p:'mds/1.基础能力/1.2.1.设计模式.md',c:1,l:2,r:'客户端,服务端',code:'code/1.基础能力/1.2.1.设计模式/'},
+  {t:'数据结构',p:'mds/1.基础能力/1.2.2.数据结构.md',c:1,l:2,r:'客户端,服务端',code:'code/1.基础能力/1.2.2.数据结构/quadtree/'},
+  {t:'算法',p:'mds/1.基础能力/1.2.3.算法.md',c:1,l:2,r:'客户端,服务端'},
+  {t:'代码重构',p:'mds/1.基础能力/1.2.4.代码重构.md',c:1,l:2,r:'客户端,服务端'},
+  {t:'通用基础',p:'mds/1.基础能力/1.3.通用基础.md',c:1,l:0,r:''},
+  {t:'数学',p:'mds/1.基础能力/1.3.1.数学.md',c:1,l:1,r:'客户端,服务端'},
+  {t:'人工智能',p:'mds/1.基础能力/1.3.2.人工智能.md',c:1,l:2,r:'客户端,服务端'},
+  {t:'操作系统',p:'mds/1.基础能力/1.3.3.操作系统.md',c:1,l:2,r:'服务端'},
+  {t:'计算机组成原理',p:'mds/1.基础能力/1.3.4.计算机组成原理.md',c:1,l:2,r:'客户端,服务端'},
+  {t:'计算机网络',p:'mds/1.基础能力/1.3.5.计算机网络.md',c:1,l:2,r:'服务端'},
+  // 2.技术能力
+  {t:'技术能力',p:'mds/2.技术能力/2.技术能力.md',c:2,l:0,r:''},
+  {t:'客户端技术',p:'mds/2.技术能力/2.1.客户端技术.md',c:2,l:0,r:''},
+  {t:'图形与渲染',p:'mds/2.技术能力/2.1.1.图形与渲染.md',c:2,l:2,r:'客户端'},
+  {t:'物理',p:'mds/2.技术能力/2.1.2.物理.md',c:2,l:2,r:'客户端'},
+  {t:'UI',p:'mds/2.技术能力/2.1.3.UI.md',c:2,l:2,r:'客户端'},
+  {t:'声音',p:'mds/2.技术能力/2.1.4.声音.md',c:2,l:2,r:'客户端'},
+  {t:'动画与特效',p:'mds/2.技术能力/2.1.5.动画与特效.md',c:2,l:2,r:'客户端'},
+  {t:'游戏引擎概念与应用',p:'mds/2.技术能力/2.1.6.游戏引擎概念与应用.md',c:2,l:2,r:'客户端'},
+  {t:'平台开发',p:'mds/2.技术能力/2.1.7.平台开发.md',c:2,l:2,r:'客户端'},
+  {t:'服务端技术',p:'mds/2.技术能力/2.2.服务端技术.md',c:2,l:0,r:''},
+  {t:'网络与通信',p:'mds/2.技术能力/2.2.1.网络与通信.md',c:2,l:2,r:'服务端',code:'code/2.技术能力/2.2.1.网络与通信/network_sync/'},
+  {t:'数据库',p:'mds/2.技术能力/2.2.2.数据库.md',c:2,l:2,r:'服务端'},
+  {t:'服务端中间件',p:'mds/2.技术能力/2.2.3.服务端中间件.md',c:2,l:3,r:'服务端'},
+  {t:'开发者工具箱',p:'mds/2.技术能力/2.3.开发者工具箱.md',c:2,l:0,r:''},
+  {t:'通用工具',p:'mds/2.技术能力/2.3.1.通用工具.md',c:2,l:1,r:'客户端,服务端'},
+  {t:'客户端开发工具',p:'mds/2.技术能力/2.3.2.客户端开发工具.md',c:2,l:1,r:'客户端'},
+  {t:'服务端开发工具',p:'mds/2.技术能力/2.3.3.服务端开发工具.md',c:2,l:1,r:'服务端'},
+  {t:'设计工具',p:'mds/2.技术能力/2.3.4.设计工具.md',c:2,l:1,r:'客户端,服务端'},
+  {t:'日常工具',p:'mds/2.技术能力/2.3.5.日常工具.md',c:2,l:1,r:'客户端,服务端'},
+  // 3.研发能力
+  {t:'研发能力',p:'mds/3.研发能力/3.研发能力.md',c:3,l:0,r:''},
+  {t:'客户端产品研发',p:'mds/3.研发能力/3.1.客户端产品研发.md',c:3,l:0,r:''},
+  {t:'客户端底层通用系统',p:'mds/3.研发能力/3.1.1.客户端底层通用系统.md',c:3,l:2,r:'客户端'},
+  {t:'客户端3D场景开发',p:'mds/3.研发能力/3.1.2.客户端3D场景开发.md',c:3,l:3,r:'客户端',code:'code/3.研发能力/3.1.2.客户端3D场景开发/hex_grid/'},
+  {t:'客户端优化',p:'mds/3.研发能力/3.1.3.客户端优化.md',c:3,l:3,r:'客户端'},
+  {t:'客户端网络系统',p:'mds/3.研发能力/3.1.4.客户端网络系统.md',c:3,l:2,r:'客户端'},
+  {t:'渲染与特效',p:'mds/3.研发能力/3.1.5.渲染与特效.md',c:3,l:3,r:'客户端'},
+  {t:'UI系统',p:'mds/3.研发能力/3.1.6.UI系统.md',c:3,l:2,r:'客户端'},
+  {t:'客户端中间件',p:'mds/3.研发能力/3.1.7.客户端中间件.md',c:3,l:3,r:'客户端'},
+  {t:'服务端产品研发',p:'mds/3.研发能力/3.2.服务端产品研发.md',c:3,l:0,r:''},
+  {t:'服务端底层架构',p:'mds/3.研发能力/3.2.1.服务端底层架构.md',c:3,l:3,r:'服务端'},
+  {t:'网游网络同步',p:'mds/3.研发能力/3.2.2.网游网络同步.md',c:3,l:3,r:'服务端'},
+  {t:'服务端优化',p:'mds/3.研发能力/3.2.3.服务端优化.md',c:3,l:3,r:'服务端'},
+  {t:'服务端基础功能',p:'mds/3.研发能力/3.2.4.服务端基础功能.md',c:3,l:2,r:'服务端'},
+  {t:'服务端业务架构',p:'mds/3.研发能力/3.2.5.服务端业务架构.md',c:3,l:3,r:'服务端'},
+  {t:'业务层功能',p:'mds/3.研发能力/3.3.业务层功能.md',c:3,l:0,r:''},
+  {t:'摄像机控制',p:'mds/3.研发能力/3.3.1.摄像机控制.md',c:3,l:2,r:'客户端'},
+  {t:'角色',p:'mds/3.研发能力/3.3.2.角色.md',c:3,l:2,r:'客户端,服务端'},
+  {t:'综合业务层功能',p:'mds/3.研发能力/3.3.3.综合业务层功能.md',c:3,l:3,r:'客户端,服务端'},
+  // 4.生产能力
+  {t:'生产能力',p:'mds/4.生产能力/4.生产能力.md',c:4,l:0,r:''},
+  {t:'游戏生产',p:'mds/4.生产能力/4.1.游戏生产.md',c:4,l:0,r:''},
+  {t:'数字内容生产',p:'mds/4.生产能力/4.1.1.数字内容生产.md',c:4,l:2,r:'客户端'},
+  {t:'AI助力游戏生产',p:'mds/4.生产能力/4.1.2.AI助力游戏生产.md',c:4,l:2,r:'客户端,服务端'},
+  {t:'引擎的基本功能系统',p:'mds/4.生产能力/4.1.3.引擎的基本功能系统.md',c:4,l:2,r:'客户端'},
+  {t:'引擎的其它系统',p:'mds/4.生产能力/4.1.4.引擎的其它系统.md',c:4,l:2,r:'客户端'},
+  {t:'工具开发',p:'mds/4.生产能力/4.2.工具开发.md',c:4,l:0,r:''},
+  {t:'编辑器开发',p:'mds/4.生产能力/4.2.1.编辑器开发.md',c:4,l:3,r:'客户端'},
+  {t:'工具开发与应用',p:'mds/4.生产能力/4.2.2.工具开发与应用.md',c:4,l:2,r:'客户端,服务端'},
+  {t:'游戏数据文件',p:'mds/4.生产能力/4.2.3.游戏数据文件.md',c:4,l:2,r:'客户端,服务端'},
+  {t:'技术中台',p:'mds/4.生产能力/4.3.技术中台.md',c:4,l:0,r:''},
+  {t:'快速开发框架',p:'mds/4.生产能力/4.3.1.快速开发框架.md',c:4,l:2,r:'客户端,服务端'},
+  {t:'技术支持',p:'mds/4.生产能力/4.3.2.技术支持.md',c:4,l:2,r:'客户端,服务端'},
+  {t:'DevOps',p:'mds/4.生产能力/4.3.3.DevOps.md',c:4,l:2,r:'服务端'},
+  // 5.管理能力
+  {t:'管理能力',p:'mds/5.管理能力/5.管理能力.md',c:5,l:0,r:''},
+  {t:'工作流',p:'mds/5.管理能力/5.1.工作流.md',c:5,l:0,r:''},
+  {t:'系统开发工作流',p:'mds/5.管理能力/5.1.1.系统开发工作流.md',c:5,l:2,r:'客户端,服务端'},
+  {t:'UI制作工作流',p:'mds/5.管理能力/5.1.2.UI制作工作流.md',c:5,l:2,r:'客户端'},
+  {t:'更多开发工作流',p:'mds/5.管理能力/5.1.3.更多开发工作流.md',c:5,l:2,r:'客户端,服务端'},
+  {t:'质量保障',p:'mds/5.管理能力/5.2.质量保障.md',c:5,l:0,r:''},
+  {t:'代码质量管理',p:'mds/5.管理能力/5.2.1.代码质量管理.md',c:5,l:2,r:'客户端,服务端'},
+  {t:'产品质量管理',p:'mds/5.管理能力/5.2.2.产品质量管理.md',c:5,l:2,r:'客户端,服务端'},
+  {t:'项目管理',p:'mds/5.管理能力/5.3.项目管理.md',c:5,l:0,r:''},
+  {t:'项目里程',p:'mds/5.管理能力/5.3.1.项目里程.md',c:5,l:2,r:'客户端,服务端'},
+  {t:'版本管理',p:'mds/5.管理能力/5.3.2.版本管理.md',c:5,l:2,r:'客户端,服务端'},
+  {t:'SCRUM',p:'mds/5.管理能力/5.3.3.SCRUM.md',c:5,l:2,r:'客户端,服务端'},
+  {t:'团队与组织',p:'mds/5.管理能力/5.3.4.团队与组织.md',c:5,l:2,r:'客户端,服务端'},
+  {t:'团队管理',p:'mds/5.管理能力/5.3.5.团队管理.md',c:5,l:2,r:'客户端,服务端'},
+  {t:'项目管理综合',p:'mds/5.管理能力/5.3.6.项目管理综合.md',c:5,l:2,r:'客户端,服务端'},
+  // 6.运营能力
+  {t:'运营能力',p:'mds/6.运营能力/6.运营能力.md',c:6,l:0,r:''},
+  {t:'运维技术',p:'mds/6.运营能力/6.1.运维技术.md',c:6,l:0,r:''},
+  {t:'网络维护',p:'mds/6.运营能力/6.1.1.网络维护.md',c:6,l:2,r:'服务端'},
+  {t:'数据存储',p:'mds/6.运营能力/6.1.2.数据存储.md',c:6,l:2,r:'服务端'},
+  {t:'资产管理',p:'mds/6.运营能力/6.1.3.资产管理.md',c:6,l:2,r:'服务端'},
+  {t:'Linux系统',p:'mds/6.运营能力/6.1.4.Linux系统.md',c:6,l:2,r:'服务端'},
+  {t:'中间件运维',p:'mds/6.运营能力/6.1.5.中间件运维.md',c:6,l:3,r:'服务端'},
+  {t:'网络安全',p:'mds/6.运营能力/6.1.6.网络安全.md',c:6,l:3,r:'服务端'},
+  {t:'产品运营支持',p:'mds/6.运营能力/6.2.产品运营支持.md',c:6,l:0,r:''},
+  {t:'GM后台',p:'mds/6.运营能力/6.2.1.GM后台.md',c:6,l:2,r:'服务端'},
+  {t:'数据统计分析',p:'mds/6.运营能力/6.2.2.数据统计分析.md',c:6,l:2,r:'服务端'},
+  {t:'产品热更新',p:'mds/6.运营能力/6.2.3.产品热更新.md',c:6,l:2,r:'客户端,服务端'},
+  {t:'产品本地化',p:'mds/6.运营能力/6.2.4.产品本地化.md',c:6,l:2,r:'客户端,服务端'},
+  {t:'开发配合',p:'mds/6.运营能力/6.2.5.开发配合.md',c:6,l:2,r:'客户端,服务端'},
+  {t:'AI助力游戏运营',p:'mds/6.运营能力/6.2.6.AI助力游戏运营.md',c:6,l:2,r:'客户端,服务端'},
+  {t:'产品商业化',p:'mds/6.运营能力/6.3.产品商业化.md',c:6,l:0,r:''},
+  {t:'游戏安全',p:'mds/6.运营能力/6.3.1.游戏安全.md',c:6,l:3,r:'服务端'},
+  {t:'帐号与支付',p:'mds/6.运营能力/6.3.2.帐号与支付.md',c:6,l:2,r:'服务端'},
+  {t:'第三方服务',p:'mds/6.运营能力/6.3.3.第三方服务.md',c:6,l:2,r:'服务端'},
+  {t:'产品合规',p:'mds/6.运营能力/6.3.4.产品合规.md',c:6,l:2,r:'客户端,服务端'},
+];
+
+const LEVELS=['','初级','中级','高级'];
+const ROLES=['客户端','服务端'];
+
+let activeCat=0, activeLevels=new Set(), activeRoles=new Set(), search='';
+
+function toggleFilter(type,val,el){
+  const s=type==='level'?activeLevels:activeRoles;
+  s.has(val)?s.delete(val):s.add(val);
+  el.classList.toggle('active',s.has(val));
+  render();
+}
+
+function render(){
+  // Tabs
+  let tabsHtml='';
+  for(let i=0;i<CATS.length;i++){
+    const cnt=DOCS.filter(d=>d.c===i+1).length;
+    tabsHtml+=`<span class="cat-tab ${i===activeCat?'active':''}" onclick="activeCat=${i};render()">${CATS[i]}<span class="count">${cnt}</span></span>`;
+  }
+  document.getElementById('tabs').innerHTML=tabsHtml;
+
+  // Filter
+  search=document.getElementById('search').value.toLowerCase();
+  let filtered=DOCS.filter(d=>{
+    if(activeCat>0&&d.c!==activeCat+1)return false;
+    if(search&&!d.t.toLowerCase().includes(search))return false;
+    if(activeLevels.size>0&&!activeLevels.has(LEVELS[d.l]))return false;
+    if(activeRoles.size>0){
+      const dr=d.r.split(',').map(s=>s.trim());
+      if(![...activeRoles].some(r=>dr.includes(r)))return false;
+    }
+    return true;
+  });
+
+  document.getElementById('stats').textContent=`显示 ${filtered.length} / ${DOCS.length} 篇文档${search?` (搜索: "${search}")`:''}`;
+
+  // List
+  if(filtered.length===0){
+    document.getElementById('list').innerHTML='<div class="empty">没有匹配的文档 😕</div>';
+  }else{
+    document.getElementById('list').innerHTML=filtered.map((d,i)=>{
+      const lvlTag=d.l?`<span class="tag tag-l${d.l}">${LEVELS[d.l]}</span>`:'';
+      const roleTags=d.r?d.r.split(',').map(r=>`<span class="tag tag-role">${r.trim()}</span>`).join(''):'';
+      const codeLink=d.code?`<a class="code-link" href="${d.code}">📦 代码</a>`:'';
+      return `<a class="doc-card" href="${d.p}">
+        <div class="num ${CAT_CLASS[d.c-1]}">${d.c}.${String(i+1).padStart(2,'0')}</div>
+        <div class="info">
+          <div class="title">${d.t}</div>
+          <div class="path">${d.p}</div>
+        </div>
+        <div class="tags">${lvlTag}${roleTags}${codeLink}</div>
+      </a>`;
+    }).join('');
+  }
+
+  // Paths
+  document.getElementById('paths').innerHTML=`
+    <div class="path-card">
+      <h3>🎓 游戏开发新人路径</h3>
+      <div class="path-flow">
+        <span class="path-step c1">基础能力</span><span class="path-arrow">→</span>
+        <span class="path-step c3">客户端/服务端研发</span><span class="path-arrow">→</span>
+        <span class="path-step c2">技术能力（引擎选择）</span><span class="path-arrow">→</span>
+        <span class="path-step c4">生产能力</span>
+      </div>
+    </div>
+    <div class="path-card">
+      <h3>💻 客户端开发路径</h3>
+      <div class="path-flow">
+        <span class="path-step c1">编程语言+数据结构</span><span class="path-arrow">→</span>
+        <span class="path-step c2">图形渲染+引擎</span><span class="path-arrow">→</span>
+        <span class="path-step c3">客户端架构+优化</span><span class="path-arrow">→</span>
+        <span class="path-step c4">工具开发</span>
+      </div>
+    </div>
+    <div class="path-card">
+      <h3>🖥️ 服务端开发路径</h3>
+      <div class="path-flow">
+        <span class="path-step c1">网络+操作系统</span><span class="path-arrow">→</span>
+        <span class="path-step c2">网络通信+数据库</span><span class="path-arrow">→</span>
+        <span class="path-step c3">服务端架构+网络同步</span><span class="path-arrow">→</span>
+        <span class="path-step c6">运维+运营</span>
+      </div>
+    </div>
+    <div class="path-card">
+      <h3>👔 技术管理路径</h3>
+      <div class="path-flow">
+        <span class="path-step c5">工作流+质量保障</span><span class="path-arrow">→</span>
+        <span class="path-step c5">项目管理+SCRUM</span><span class="path-arrow">→</span>
+        <span class="path-step c5">团队管理+组织</span><span class="path-arrow">→</span>
+        <span class="path-step c6">产品运营</span>
+      </div>
+    </div>
+  `;
+}
+
+render();
+</script>
+</body>
+</html>

@@ -13,6 +13,8 @@
     <a href="https://www.zhihu.com/column/c_2015116242835482449">知乎专栏</a>
     &nbsp;|&nbsp;
     <a href="mds/阅读说明.md">阅读说明</a>
+    &nbsp;|&nbsp;
+    <a href="https://gonglei007.github.io/GameDevMind/nav/">🔍 交互式导航</a>
   </p>
 </p>
 
