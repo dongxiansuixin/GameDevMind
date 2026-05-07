@@ -30,6 +30,16 @@
 
 <br/>
 
+<div align="center">
+
+| 📊 118 篇文档 | 💻 7 个代码示例 | 🏥 5 个实战案例 | 🤖 3 个 AI 对话 |
+|:---:|:---:|:---:|:---:|
+| [开始阅读 →](mds/阅读说明.md) | [运行代码 →](code/README.md) | [看案例 →](cases/README.md) | [看对话 →](ai-cases/README.md) |
+
+</div>
+
+<br/>
+
 ## 介绍
 
 游戏开发已经走过了半个多世纪，但开发者们常常还得重复造轮子。我们希望通过整理这份（技术向的）**《游戏开发图谱》**，帮你在面对问题时快速抓住关键点，找到解决方向，少踩坑，多飞跃。
@@ -37,25 +47,25 @@
 <br/>
 
 <div align="center">
-<table style="width:600px; border-collapse: collapse;">
+<table style="width:640px; border-collapse: collapse;">
     <thead>
         <tr style="background:#f6f8fa;">
-            <th style="padding:10px 18px; text-align:left;">✅ 我们有的</th>
-            <th style="padding:10px 18px; text-align:left;">❌ 我们没有的</th>
+            <th style="padding:10px 18px; text-align:left;">✅ 这份图谱是</th>
+            <th style="padding:10px 18px; text-align:left;">📦 另配套提供</th>
         </tr>
     </thead>
     <tbody>
         <tr>
             <td style="padding:8px 18px;">🎯 是做什么的？在哪用？</td>
-            <td style="padding:8px 18px;"><s>系统化的知识讲解</s></td>
+            <td style="padding:8px 18px;">💻 <a href="code/README.md">可运行的代码示例</a></td>
         </tr>
         <tr>
             <td style="padding:8px 18px;">🛠️ 会遇到哪些问题？用什么解决？</td>
-            <td style="padding:8px 18px;"><s>具体的实现细节</s></td>
+            <td style="padding:8px 18px;">🏥 <a href="cases/README.md">真实踩坑案例</a></td>
         </tr>
         <tr>
             <td style="padding:8px 18px;">🔍 要点和思考方向</td>
-            <td style="padding:8px 18px;"><s>完整的一套解决方案</s></td>
+            <td style="padding:8px 18px;">🤖 <a href="ai-cases/README.md">AI 协作实战记录</a></td>
         </tr>
     </tbody>
 </table>
@@ -158,6 +168,20 @@
 
 ---
 
+## 📈 知识全景
+
+<div align="center">
+
+*[[ 图谱总览 ]](exports/0.总览.png)*
+
+![图谱知识树（持续补充扩展中）](overview/overview-h.png)
+
+> 🖱️ [查看交互式全景图 →](https://gonglei007.github.io/GameDevMind/nav/panorama.html)
+
+</div>
+
+---
+
 ## 💻 配套代码示例
 
 > 📦 理论知识配套可运行的 C++ 代码示例，帮你从「知道」到「做到」
@@ -241,18 +265,6 @@
         </td>
     </tr>
 </table>
-
----
-
-## 📈 缩略预览
-
-<div align="center">
-
-*[[ 图谱总览 ]](exports/0.总览.png)*
-
-![图谱知识树（持续补充扩展中）](overview/overview-h.png)
-
-</div>
 
 ---
 
