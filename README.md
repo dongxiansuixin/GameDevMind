@@ -172,6 +172,22 @@
 
 ---
 
+## 🏥 实战案例
+
+> 💡 别人踩过的坑，就是你最好的老师
+
+| 案例 | 症状 | 根因 | 对应图谱 |
+|------|------|------|----------|
+| [SLG手游内存泄漏](cases/memory-leak-slg.md) | 挂机2小时后OOM崩溃 | shared_ptr 循环引用 | C++·智能指针 |
+| [MOBA角色回弹](cases/network-reconciliation.md) | 海外玩家角色频繁回弹 | 客户端预测与服务器校正冲突 | 网游网络同步 |
+| [开放世界卡顿](cases/drawcall-optimization.md) | Draw Call 3000+，帧率22fps | 材质未复用+无LOD+无合批 | 客户端优化 |
+| [服务器死锁](cases/server-deadlock.md) | 不定期卡死无响应 | 逻辑线程与网络线程ABBA死锁 | 操作系统·多线程 |
+| [排行榜查询超时](cases/leaderboard-optimization.md) | 全服排行查询5秒超时 | 无索引全表扫描+无缓存 | 数据库 |
+
+[📂 查看全部案例 →](cases/README.md)
+
+---
+
 ## 🧑‍💻 游戏程序员职业发展路径
 
 <table width="100%" border=1 style="border-collapse: collapse;">
