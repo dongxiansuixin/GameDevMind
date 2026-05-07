@@ -18,7 +18,7 @@
     &nbsp;|&nbsp;
     <a href="https://gonglei007.github.io/GameDevMind/nav/panorama.html">🗺️ 全景图</a>
     &nbsp;|&nbsp;
-    <strong>Powered by <a href="https://www.gltop.com?from=gamedevmind">GLTOP</a></strong>
+    <strong>Powered by <a href="https://www.gltop.com?from=gamedevmind">顶游社</a></strong>
   </p>
 </p>
 
@@ -284,7 +284,7 @@
         </tr-->
         <tr>
             <td align="center" style="background:#ffffff; padding: 12px;">
-                <a href="https://www.gltop.com?from=gamedevmind" target="_blank"><img src="./images/partners/GameDevMind_Baner/GameDevMind_Baner.004.png" height="128" alt="GLTOP"></img></a>
+                <a href="https://www.gltop.com?from=gamedevmind" target="_blank"><img src="./images/partners/GameDevMind_Baner/GameDevMind_Baner.004.png" height="128" alt="顶游社"></img></a>
             </td>
         </tr>
     </table>
@@ -311,7 +311,7 @@
 
 <div align="center">
 
-**GLTOP** — 游戏研发技术中台
+**顶游社** — 游戏研发技术中台
 
 > 提供游戏开发技术咨询、团队培训、项目技术方案评估等服务
 
