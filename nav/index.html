@@ -277,8 +277,8 @@ function render(){
     document.getElementById('list').innerHTML=filtered.map((d,i)=>{
       const lvlTag=d.l?`<span class="tag tag-l${d.l}">${LEVELS[d.l]}</span>`:'';
       const roleTags=d.r?d.r.split(',').map(r=>`<span class="tag tag-role">${r.trim()}</span>`).join(''):'';
-      const codeLink=d.code?`<a class="code-link" href="${d.code}">📦 代码</a>`:'';
-      return `<a class="doc-card" href="${d.p}">
+      const codeLink=d.code?`<a class="code-link" href="../${d.code}">📦 代码</a>`:'';
+      return `<a class="doc-card" href="../${d.p}">
         <div class="num ${CAT_CLASS[d.c-1]}">${d.c}.${String(i+1).padStart(2,'0')}</div>
         <div class="info">
           <div class="title">${d.t}</div>
