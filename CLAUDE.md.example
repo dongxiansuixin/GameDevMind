@@ -1,0 +1,239 @@
+# 使用方法：复制此文件到你的游戏项目根目录，重命名为 CLAUDE.md
+# 根据你的项目修改标记为 【TODO】 的部分
+#
+# =============================================================================
+# 游戏开发项目 Claude Code 项目记忆
+# 【TODO: 项目名称】
+# =============================================================================
+
+---
+
+## 项目概述
+
+【TODO: 一句话描述你的游戏项目】
+
+- **游戏类型**：【TODO: FPS / RPG / MOBA / 卡牌 / 休闲 / 开放世界 / ...】
+- **引擎**：【TODO: Unity 2022 LTS / Unreal Engine 5.x / 自研引擎】
+- **目标平台**：【TODO: PC / iOS+Android / 主机 / 全平台】
+- **团队规模**：【TODO: N 人，程序 N 人】
+- **网络模式**：【TODO: 单机 / 联机 P2P / 专用服务器 / 混合】
+
+---
+
+## 项目架构
+
+```
+【TODO: 简要架构图或描述】
+
+例：
+┌─────────────┐    ┌──────────────┐    ┌─────────────┐
+│   Client    │◄──►│  Game Server │◄──►│    DB/Redis │
+│  (Unity)    │    │   (C++/ASIO) │    └─────────────┘
+└─────────────┘    └──────────────┘
+
+客户端分层：
+  Presentation (UI) → Gameplay Logic → Engine/Systems → Platform
+
+服务器分层：
+  Gateway → Lobby → Game Room → Persistence
+```
+
+- **核心设计模式**：【TODO: ECS / MVC / MVP / 组件化 / GameObject-Actor】
+- **DI/IoC**：【TODO: Zenject / VContainer / 无】
+- **资源管理**：【TODO: Addressables / AssetManager / AssetBundle】
+- **UI 框架**：【TODO: UGUI + 自研框架 / UI Toolkit / CommonUI / MVVM】
+- **数据配置**：【TODO: ScriptableObject / DataTable / Excel → Protobuf / JSON】
+- **网络协议**：【TODO: Protobuf / FlatBuffers / MessagePack / 自定义二进制】
+- **序列化版本控制**：【TODO: 有 / 无，向前兼容策略】
+
+---
+
+## 目录结构
+
+```
+/（项目根目录）
+├── Assets/
+│   ├── _Project/              # 【TODO: 你的代码主目录名】
+│   │   ├── Core/              # 核心系统
+│   │   ├── Gameplay/          # 玩法逻辑
+│   │   ├── UI/                # 界面
+│   │   ├── Data/              # 配置数据
+│   │   ├── Plugins/           # 第三方插件
+│   │   └── Resources/         # 动态加载资源
+│   └── ...
+├── Config/                    # 构建/部署配置
+├── Tools/                     # 工具脚本
+├── Docs/                      # 设计文档
+└── 【TODO: 根据实际结构调整】
+```
+
+---
+
+## 关键命令
+
+所有命令在项目根目录执行。
+
+### 开发环境初始化
+```bash
+# 【TODO: 克隆后首次设置】
+git clone 【TODO: repo-url】
+# Unity: 用 Unity Hub 打开项目，等待依赖解析完成
+# Unreal: 右键 .uproject → Generate Visual Studio project files → 编译
+# C++: cmake -B build -DCMAKE_BUILD_TYPE=Debug && cmake --build build
+```
+
+### 构建
+```bash
+# 【TODO: 选择并修改】
+# Unity CLI Build:
+#   unity -quit -batchmode -projectPath . -executeMethod BuildScript.Build -logFile build.log
+
+# Unreal Build:
+#   RunUAT BuildCookRun -project=YourProject.uproject -platform=Win64 -configuration=Development
+
+# C++ Server:
+#   cmake --build build --config Release
+```
+
+### 运行测试
+```bash
+# Unity Test Runner (EditMode):
+#   unity -runTests -testPlatform EditMode -testResults results.xml
+
+# Unreal Automation:
+#   UnrealEditor-Cmd.exe YourProject -ExecCmds="Automation RunTests All"
+
+# C++ (GoogleTest):
+#   cd build && ctest --output-on-failure
+```
+
+### 部署
+```bash
+# 【TODO: iOS/Android/PC/Console 部署命令】
+# iOS: archive + xcodebuild -exportArchive
+# Android: gradlew assembleRelease → APK/AAB
+# PC: 直接打包输出，或 CI 流程
+# 服务器: docker build + docker push + k8s apply / ssh rsync
+```
+
+### 代码检查
+```bash
+# 【TODO: lint / format / static analysis】
+# Unity: Rider / VS 内置分析 + Roslyn Analyzers
+# Unreal: clang-format + Resharper C++
+# 通用 C++: clang-format -i src/**/*.cpp && clang-tidy src/**/*.cpp
+```
+
+---
+
+## 代码标准
+
+### 语言与风格
+- **语言**：【TODO: C# 9.0 / C++17 / C++20】
+- **格式化**：【TODO: 项目 .editorconfig / clang-format 路径】
+- **命名规范**：
+  - 类：PascalCase
+  - 函数/方法：PascalCase
+  - 变量：camelCase（局部）、m_camelCase / _camelCase（成员）
+  - 常量：ALL_CAPS
+  - 接口：IPrefix
+- **null 安全**：所有 public 方法参数检查 null（C#）/ nullptr（C++）
+- **异常处理**：【TODO: 使用异常 / 错误码 / Result<T> 模式】
+- **日志级别**：Verbose(Debug) → Log(Info) → Warning → Error → Fatal
+  - 【TODO: 使用项目统一日志宏/类，如 GAME_LOG(Info, "msg")】
+- **if/for/while 必须用花括号**，即使只有一行
+
+### 禁止事项
+- 🚫 禁止在 Update/Tick 中 new / malloc
+- 🚫 禁止同步 I/O 操作（文件读写、网络请求）在主线程
+- 🚫 禁止硬编码路径和魔法数字
+- 🚫 禁止注释掉的代码留在提交中（用 git history 回顾）
+- 🚫 禁止直接 Debug.Log / printf，走统一日志系统
+- 🚫 禁止 GetComponent / FindObjectOfType 在 Update 中调用
+- 🚫 禁止在 Awake/构造函数中调用可能失败的外部依赖
+
+### 必须遵守
+- ✅ MonoBehaviour 必须有对应的 .meta 文件一起提交
+- ✅ ScriptableObject 的变更必须记录到版本说明
+- ✅ 修改公共 API 必须更新相关测试
+- ✅ 资源导入设置必须与团队约定一致（Texture Max Size、Compression 等）
+- ✅ 提交前必须本地编译通过，并运行相关测试
+
+---
+
+## 游戏特定约束
+
+### 性能预算
+| 指标 | 目标值 | 备注 |
+|------|--------|------|
+| 帧率 | 【TODO: 30 / 60 / 120 FPS】 | |
+| 帧时间预算 | 【TODO: 16.67ms @60fps】 | 逻辑 ≤ 5ms, 渲染 ≤ 10ms |
+| 启动时间 | 【TODO: < 3s 冷启动】 | 到主菜单可交互 |
+| GC 分配 | 【TODO: < 1KB/frame 或零分配】 | 关键路径零分配 |
+| 加载时间 | 【TODO: < 5s 场景切换】 | 含网络请求 |
+
+### 内存限制
+| 平台 | 预算 | 备注 |
+|------|------|------|
+| 【TODO: PC】 | 【TODO: 8 GB】 | |
+| 【TODO: Mobile 低端】 | 【TODO: 1.5 GB】 | iOS 低内存机型 |
+| 【TODO: Mobile 高端】 | 【TODO: 3 GB】 | |
+| 【TODO: Console】 | 【TODO: 5 GB】 | PS5 / Xbox Series |
+
+### 平台特定
+- **iOS**：【TODO: Metal 2.0+, App Store 审核要点, 最低版本 iOS 14】
+- **Android**：【TODO: Vulkan 1.1+, Google Play 64-bit 要求, API Level 26+】
+- **PC**：【TODO: DX11/DX12, Steamworks SDK, EAC 反作弊】
+- **WebGL**：【TODO: 仅当支持，内存 < 2GB，无多线程】
+
+### 资源限制
+- 纹理最大分辨率：【TODO: 2048x2048 / 4096x4096】
+- 音频格式：【TODO: BGM=MP3/Vorbis, SFX=WAV/PCM 压缩】
+- 每个角色骨骼数上限：【TODO: 100】
+- 同屏最大实体数：【TODO: 500】
+- 网络包大小上限：【TODO: 1KB/RPC, 1200 bytes MTU 安全】
+
+---
+
+## 常见陷阱
+
+### Unity 项目
+1. **不要在 MonoBehaviour 构造函数中访问 Unity API**——此时对象未初始化，用 Awake/Start
+2. **协程中捕获的变量注意生命周期**——对象销毁后协程还在跑会导致 NullReferenceException
+3. **Animator 参数名用 hash 不用 string**：`Animator.StringToHash("Speed")` 而不是每次传字符串
+4. **Resources 目录所有资源都会打进包**，只放必须动态加载的内容
+5. **OnDestroy 中必须取消所有事件订阅**，否则内存泄漏
+6. **[SerializeField] 字段改名会丢失 Inspector 引用**，用 `[FormerlySerializedAs("oldName")]`
+7. **UI Canvas 的 Pixel Perfect 和 Canvas Scaler 设置影响性能**，按需选择
+8. **不要每帧 GetComponent / Find / FindObjectOfType**——在 Awake 缓存
+9. **Build Settings 中 Scenes 顺序**——索引 0 是启动场景
+10. **Layers 和 Tags 拼写错误不会报编译错误**——用常量类管理字符串
+
+### Unreal 项目
+1. **UPROPERTY 和 UFUNCTION 宏遗漏**会导致 GC 无法追踪，造成崩溃或内存泄漏
+2. **不要在构造函数中触发蓝图事件**——蓝图尚未初始化
+3. **TArray 传参时注意按引用还是按值**——默认按值会拷贝
+4. **多人游戏中 Server RPC 和 Client RPC 方向不能搞反**
+5. **BeginPlay 执行顺序不确定**，Actor/Component 间依赖用显式初始化
+
+### C++ 通用
+1. **虚函数不要在构造函数/析构函数中调用**——派生类尚未构造/已被析构
+2. **lambda 捕获 [=] 时注意悬空引用**——this 可能已失效，用 [this, &specificVar]
+3. **STL 容器的迭代器在修改容器后失效**——注意 erase 返回值、insert 后的重新获取
+4. **float 比较用 epsilon**——`abs(a - b) < 0.001f`，不直接用 ==
+5. **多线程共享数据必须加锁或用 atomic**——debug 模式难以发现的 race condition
+
+### 网络/多人
+1. **客户端不能做权威判定**——伤害/掉落/状态变更必须服务器确认
+2. **RPC 顺序不保证**——依赖顺序的逻辑要加序列号
+3. **网络时间 ≠ 本地时间**——用服务器时间做同步，不要信任客户端时间戳
+4. **float 在不同平台/编译器可能不同**——关键逻辑用 fixed-point 或 int 传协议
+
+---
+
+## 版本信息
+
+- **项目版本**：【TODO: 0.1.0-alpha】
+- **引擎版本**：【TODO: Unity 2022.3 LTS / UE 5.4】
+- **文档维护者**：【TODO: 人名/角色，如 技术负责人】
+- **最后更新**：【TODO: YYYY-MM-DD】

@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GameDevMind · 知识全景图</title>
+<style>
+:root {
+  --bg: #0d1117;
+  --surface: #161b22;
+  --border: #30363d;
+  --text: #c9d1d9;
+  --muted: #8b949e;
+  --accent: #58a6ff;
+  --red: #f85149;
+  --orange: #d2991d;
+  --yellow: #e3b341;
+  --green: #3fb950;
+  --blue: #58a6ff;
+  --purple: #bc8cff;
+  --radius: 8px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  overflow: hidden;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* ── Header ── */
+.header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-shrink: 0;
+  z-index: 100;
+  flex-wrap: wrap;
+}
+.header h1 {
+  font-size: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+.header h1 span { color: var(--accent); }
+.header a.back {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.85rem;
+  transition: color 0.2s;
+}
+.header a.back:hover { color: var(--accent); }
+
+/* ── Module Tabs ── */
+.tabs {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.tab {
+  padding: 6px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.tab:hover { border-color: var(--accent); color: var(--text); }
+.tab.active { color: #fff; font-weight: 600; }
+.tab.active.m0 { background: var(--red); border-color: var(--red); }
+.tab.active.m1 { background: var(--orange); border-color: var(--orange); }
+.tab.active.m2 { background: var(--yellow); border-color: var(--yellow); color: #000; }
+.tab.active.m3 { background: var(--green); border-color: var(--green); }
+.tab.active.m4 { background: var(--blue); border-color: var(--blue); }
+.tab.active.m5 { background: var(--purple); border-color: var(--purple); }
+
+/* ── Legend & Hints ── */
+.legend {
+  display: flex;
+  gap: 12px;
+  font-size: 0.72rem;
+  color: var(--muted);
+  align-items: center;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+.legend span { display: flex; align-items: center; gap: 4px; }
+.legend .dot {
+  width: 10px; height: 10px; border-radius: 50%; display: inline-block;
+}
+
+/* ── Canvas Area ── */
+.canvas-wrap {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  cursor: grab;
+}
+.canvas-wrap:active { cursor: grabbing; }
+.canvas-wrap.grabbing { cursor: grabbing; }
+
+.canvas {
+  position: absolute;
+  top: 0; left: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+/* ── SVG Edges ── */
+.edges-svg {
+  position: absolute;
+  top: 0; left: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+.edge-line {
+  fill: none;
+  stroke: var(--border);
+  stroke-width: 1.5;
+  transition: stroke 0.3s;
+}
+.edge-line.highlight { stroke: var(--muted); stroke-width: 2; }
+
+/* ── Nodes ── */
+.node {
+  position: absolute;
+  border-radius: 6px;
+  padding: 6px 14px;
+  cursor: pointer;
+  font-weight: 500;
+  text-align: center;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: nowrap;
+  border: 1.5px solid transparent;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+}
+.node:hover { z-index: 10; filter: brightness(1.3); }
+.node:active { filter: brightness(0.9); }
+
+/* Root nodes (depth=0) */
+.node.d0 {
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 10px 22px;
+  border-radius: 10px;
+  min-width: 130px;
+}
+.node.d0.m0 { background: rgba(248,81,73,0.2); border-color: var(--red); color: var(--red); }
+.node.d0.m1 { background: rgba(210,153,29,0.2); border-color: var(--orange); color: var(--orange); }
+.node.d0.m2 { background: rgba(227,179,65,0.2); border-color: var(--yellow); color: var(--yellow); }
+.node.d0.m3 { background: rgba(63,185,80,0.2); border-color: var(--green); color: var(--green); }
+.node.d0.m4 { background: rgba(88,166,255,0.2); border-color: var(--blue); color: var(--blue); }
+.node.d0.m5 { background: rgba(188,140,255,0.2); border-color: var(--purple); color: var(--purple); }
+.node.d0:hover { filter: brightness(1.4); box-shadow: 0 0 20px currentColor; }
+
+/* Category nodes (depth=1) */
+.node.d1 {
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 7px 16px;
+  border-radius: 8px;
+  min-width: 100px;
+}
+.node.d1.m0 { background: rgba(248,81,73,0.12); border-color: rgba(248,81,73,0.5); color: #ff8a85; }
+.node.d1.m1 { background: rgba(210,153,29,0.12); border-color: rgba(210,153,29,0.5); color: #e8b84a; }
+.node.d1.m2 { background: rgba(227,179,65,0.12); border-color: rgba(227,179,65,0.5); color: #f0cc5a; }
+.node.d1.m3 { background: rgba(63,185,80,0.12); border-color: rgba(63,185,80,0.5); color: #5fd96a; }
+.node.d1.m4 { background: rgba(88,166,255,0.12); border-color: rgba(88,166,255,0.5); color: #7abfff; }
+.node.d1.m5 { background: rgba(188,140,255,0.12); border-color: rgba(188,140,255,0.5); color: #d0a9ff; }
+.node.d1.has-children::after {
+  content: '▼';
+  font-size: 0.55rem;
+  margin-left: 2px;
+  opacity: 0.6;
+  transition: transform 0.3s;
+}
+.node.d1.collapsed::after { transform: rotate(-90deg); }
+
+/* Leaf nodes (depth=2) */
+.node.d2 {
+  font-size: 0.78rem;
+  font-weight: 400;
+  padding: 5px 12px;
+  border-radius: 5px;
+  min-width: 80px;
+}
+.node.d2.m0 { background: rgba(248,81,73,0.06); border-color: rgba(248,81,73,0.3); color: #ffa8a5; }
+.node.d2.m1 { background: rgba(210,153,29,0.06); border-color: rgba(210,153,29,0.3); color: #f0cf70; }
+.node.d2.m2 { background: rgba(227,179,65,0.06); border-color: rgba(227,179,65,0.3); color: #f5dc80; }
+.node.d2.m3 { background: rgba(63,185,80,0.06); border-color: rgba(63,185,80,0.3); color: #82e68d; }
+.node.d2.m4 { background: rgba(88,166,255,0.06); border-color: rgba(88,166,255,0.3); color: #a3d5ff; }
+.node.d2.m5 { background: rgba(188,140,255,0.06); border-color: rgba(188,140,255,0.3); color: #ddc4ff; }
+
+/* Difficulty badge */
+.badge {
+  font-size: 0.6rem;
+  padding: 1px 6px;
+  border-radius: 8px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.badge.l1 { background: rgba(63,185,80,0.2); color: var(--green); }
+.badge.l2 { background: rgba(227,179,65,0.2); color: var(--yellow); }
+.badge.l3 { background: rgba(248,81,73,0.2); color: var(--red); }
+
+/* ── Tooltip ── */
+.tooltip {
+  position: fixed;
+  pointer-events: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 0.78rem;
+  color: var(--text);
+  z-index: 200;
+  opacity: 0;
+  transition: opacity 0.15s;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+.tooltip.show { opacity: 1; }
+.tooltip .tt-path { font-size: 0.68rem; color: var(--muted); margin-top: 2px; }
+
+/* ── Controls ── */
+.controls {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 50;
+}
+.ctrl-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.ctrl-btn:hover { border-color: var(--accent); color: var(--accent); }
+.ctrl-btn.reset { font-size: 0.75rem; }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .header { padding: 10px 14px; gap: 10px; }
+  .header h1 { font-size: 1rem; }
+  .tab { padding: 5px 10px; font-size: 0.7rem; }
+  .legend { display: none; }
+  .node.d0 { font-size: 0.85rem; padding: 8px 16px; min-width: 100px; }
+  .node.d1 { font-size: 0.72rem; padding: 5px 12px; }
+  .node.d2 { font-size: 0.68rem; padding: 4px 10px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <h1>🗺️ GameDevMind <span>知识全景图</span></h1>
+  <a class="back" href="index.html">← 返回导航</a>
+  <div class="tabs" id="tabs"></div>
+  <div class="legend">
+    <span>🖱️ 拖拽平移</span>
+    <span>🔍 滚轮缩放</span>
+    <span>🖱️ 单击展开</span>
+    <span>🖱️🖱️ 双击跳转</span>
+  </div>
+</div>
+
+<!-- Canvas -->
+<div class="canvas-wrap" id="wrap">
+  <div class="canvas" id="canvas">
+    <svg class="edges-svg" id="edges"></svg>
+  </div>
+</div>
+
+<!-- Tooltip -->
+<div class="tooltip" id="tooltip"></div>
+
+<!-- Zoom Controls -->
+<div class="controls">
+  <button class="ctrl-btn" id="btn-zoom-in" title="放大">+</button>
+  <button class="ctrl-btn" id="btn-zoom-out" title="缩小">−</button>
+  <button class="ctrl-btn reset" id="btn-reset" title="重置视图">⟳</button>
+</div>
+
+<script>
+// ============================================================
+//  DATA — from nav/index.html DOCS array
+// ============================================================
+const DOCS = [
+  // 1.基础能力
+  {t:'基础能力',p:'mds/1.基础能力/1.基础能力.md',c:1,l:0,r:''},
+  {t:'编程语言',p:'mds/1.基础能力/1.1.编程语言.md',c:1,l:0,r:''},
+  {t:'编程语言基础概念',p:'mds/1.基础能力/1.1.1.编程语言基础概念.md',c:1,l:1,r:'客户端,服务端'},
+  {t:'C++语言',p:'mds/1.基础能力/1.1.2.C++语言.md',c:1,l:2,r:'客户端,服务端'},
+  {t:'C#语言',p:'mds/1.基础能力/1.1.3.C#语言.md',c:1,l:1,r:'客户端'},
+  {t:'JS语言',p:'mds/1.基础能力/1.1.4.JS语言.md',c:1,l:1,r:'客户端'},
+  {t:'编程语言综合',p:'mds/1.基础能力/1.1.5.编程语言综合.md',c:1,l:2,r:'客户端,服务端'},
+  {t:'内存管理',p:'mds/1.基础能力/1.1.6.内存管理.md',c:1,l:2,r:'客户端,服务端'},
+  {t:'编程语言高阶概念',p:'mds/1.基础能力/1.1.7.编程语言高阶概念.md',c:1,l:3,r:'客户端,服务端'},
+  {t:'程序设计',p:'mds/1.基础能力/1.2.程序设计.md',c:1,l:0,r:''},
+  {t:'设计模式',p:'mds/1.基础能力/1.2.1.设计模式.md',c:1,l:2,r:'客户端,服务端'},
+  {t:'数据结构',p:'mds/1.基础能力/1.2.2.数据结构.md',c:1,l:2,r:'客户端,服务端'},
+  {t:'算法',p:'mds/1.基础能力/1.2.3.算法.md',c:1,l:2,r:'客户端,服务端'},
+  {t:'代码重构',p:'mds/1.基础能力/1.2.4.代码重构.md',c:1,l:2,r:'客户端,服务端'},
+  {t:'通用基础',p:'mds/1.基础能力/1.3.通用基础.md',c:1,l:0,r:''},
+  {t:'数学',p:'mds/1.基础能力/1.3.1.数学.md',c:1,l:1,r:'客户端,服务端'},
+  {t:'人工智能',p:'mds/1.基础能力/1.3.2.人工智能.md',c:1,l:2,r:'客户端,服务端'},
+  {t:'操作系统',p:'mds/1.基础能力/1.3.3.操作系统.md',c:1,l:2,r:'服务端'},
+  {t:'计算机组成原理',p:'mds/1.基础能力/1.3.4.计算机组成原理.md',c:1,l:2,r:'客户端,服务端'},
+  {t:'计算机网络',p:'mds/1.基础能力/1.3.5.计算机网络.md',c:1,l:2,r:'服务端'},
+  // 2.技术能力
+  {t:'技术能力',p:'mds/2.技术能力/2.技术能力.md',c:2,l:0,r:''},
+  {t:'客户端技术',p:'mds/2.技术能力/2.1.客户端技术.md',c:2,l:0,r:''},
+  {t:'图形与渲染',p:'mds/2.技术能力/2.1.1.图形与渲染.md',c:2,l:2,r:'客户端'},
+  {t:'物理',p:'mds/2.技术能力/2.1.2.物理.md',c:2,l:2,r:'客户端'},
+  {t:'UI',p:'mds/2.技术能力/2.1.3.UI.md',c:2,l:2,r:'客户端'},
+  {t:'声音',p:'mds/2.技术能力/2.1.4.声音.md',c:2,l:2,r:'客户端'},
+  {t:'动画与特效',p:'mds/2.技术能力/2.1.5.动画与特效.md',c:2,l:2,r:'客户端'},
+  {t:'游戏引擎概念与应用',p:'mds/2.技术能力/2.1.6.游戏引擎概念与应用.md',c:2,l:2,r:'客户端'},
+  {t:'平台开发',p:'mds/2.技术能力/2.1.7.平台开发.md',c:2,l:2,r:'客户端'},
+  {t:'服务端技术',p:'mds/2.技术能力/2.2.服务端技术.md',c:2,l:0,r:''},
+  {t:'网络与通信',p:'mds/2.技术能力/2.2.1.网络与通信.md',c:2,l:2,r:'服务端'},
+  {t:'数据库',p:'mds/2.技术能力/2.2.2.数据库.md',c:2,l:2,r:'服务端'},
+  {t:'服务端中间件',p:'mds/2.技术能力/2.2.3.服务端中间件.md',c:2,l:3,r:'服务端'},
+  {t:'开发者工具箱',p:'mds/2.技术能力/2.3.开发者工具箱.md',c:2,l:0,r:''},
+  {t:'通用工具',p:'mds/2.技术能力/2.3.1.通用工具.md',c:2,l:1,r:'客户端,服务端'},
+  {t:'客户端开发工具',p:'mds/2.技术能力/2.3.2.客户端开发工具.md',c:2,l:1,r:'客户端'},
+  {t:'服务端开发工具',p:'mds/2.技术能力/2.3.3.服务端开发工具.md',c:2,l:1,r:'服务端'},
+  {t:'设计工具',p:'mds/2.技术能力/2.3.4.设计工具.md',c:2,l:1,r:'客户端,服务端'},
+  {t:'日常工具',p:'mds/2.技术能力/2.3.5.日常工具.md',c:2,l:1,r:'客户端,服务端'},
+  // 3.研发能力
+  {t:'研发能力',p:'mds/3.研发能力/3.研发能力.md',c:3,l:0,r:''},
+  {t:'客户端产品研发',p:'mds/3.研发能力/3.1.客户端产品研发.md',c:3,l:0,r:''},
+  {t:'客户端底层通用系统',p:'mds/3.研发能力/3.1.1.客户端底层通用系统.md',c:3,l:2,r:'客户端'},
+  {t:'客户端3D场景开发',p:'mds/3.研发能力/3.1.2.客户端3D场景开发.md',c:3,l:3,r:'客户端'},
+  {t:'客户端优化',p:'mds/3.研发能力/3.1.3.客户端优化.md',c:3,l:3,r:'客户端'},
+  {t:'客户端网络系统',p:'mds/3.研发能力/3.1.4.客户端网络系统.md',c:3,l:2,r:'客户端'},
+  {t:'渲染与特效',p:'mds/3.研发能力/3.1.5.渲染与特效.md',c:3,l:3,r:'客户端'},
+  {t:'UI系统',p:'mds/3.研发能力/3.1.6.UI系统.md',c:3,l:2,r:'客户端'},
+  {t:'客户端中间件',p:'mds/3.研发能力/3.1.7.客户端中间件.md',c:3,l:3,r:'客户端'},
+  {t:'服务端产品研发',p:'mds/3.研发能力/3.2.服务端产品研发.md',c:3,l:0,r:''},
+  {t:'服务端底层架构',p:'mds/3.研发能力/3.2.1.服务端底层架构.md',c:3,l:3,r:'服务端'},
+  {t:'网游网络同步',p:'mds/3.研发能力/3.2.2.网游网络同步.md',c:3,l:3,r:'服务端'},
+  {t:'服务端优化',p:'mds/3.研发能力/3.2.3.服务端优化.md',c:3,l:3,r:'服务端'},
+  {t:'服务端基础功能',p:'mds/3.研发能力/3.2.4.服务端基础功能.md',c:3,l:2,r:'服务端'},
+  {t:'服务端业务架构',p:'mds/3.研发能力/3.2.5.服务端业务架构.md',c:3,l:3,r:'服务端'},
+  {t:'业务层功能',p:'mds/3.研发能力/3.3.业务层功能.md',c:3,l:0,r:''},
+  {t:'摄像机控制',p:'mds/3.研发能力/3.3.1.摄像机控制.md',c:3,l:2,r:'客户端'},
+  {t:'角色',p:'mds/3.研发能力/3.3.2.角色.md',c:3,l:2,r:'客户端,服务端'},
+  {t:'综合业务层功能',p:'mds/3.研发能力/3.3.3.综合业务层功能.md',c:3,l:3,r:'客户端,服务端'},
+  // 4.生产能力
+  {t:'生产能力',p:'mds/4.生产能力/4.生产能力.md',c:4,l:0,r:''},
+  {t:'游戏生产',p:'mds/4.生产能力/4.1.游戏生产.md',c:4,l:0,r:''},
+  {t:'数字内容生产',p:'mds/4.生产能力/4.1.1.数字内容生产.md',c:4,l:2,r:'客户端'},
+  {t:'AI助力游戏生产',p:'mds/4.生产能力/4.1.2.AI助力游戏生产.md',c:4,l:2,r:'客户端,服务端'},
+  {t:'引擎的基本功能系统',p:'mds/4.生产能力/4.1.3.引擎的基本功能系统.md',c:4,l:2,r:'客户端'},
+  {t:'引擎的其它系统',p:'mds/4.生产能力/4.1.4.引擎的其它系统.md',c:4,l:2,r:'客户端'},
+  {t:'工具开发',p:'mds/4.生产能力/4.2.工具开发.md',c:4,l:0,r:''},
+  {t:'编辑器开发',p:'mds/4.生产能力/4.2.1.编辑器开发.md',c:4,l:3,r:'客户端'},
+  {t:'工具开发与应用',p:'mds/4.生产能力/4.2.2.工具开发与应用.md',c:4,l:2,r:'客户端,服务端'},
+  {t:'游戏数据文件',p:'mds/4.生产能力/4.2.3.游戏数据文件.md',c:4,l:2,r:'客户端,服务端'},
+  {t:'技术中台',p:'mds/4.生产能力/4.3.技术中台.md',c:4,l:0,r:''},
+  {t:'快速开发框架',p:'mds/4.生产能力/4.3.1.快速开发框架.md',c:4,l:2,r:'客户端,服务端'},
+  {t:'技术支持',p:'mds/4.生产能力/4.3.2.技术支持.md',c:4,l:2,r:'客户端,服务端'},
+  {t:'DevOps',p:'mds/4.生产能力/4.3.3.DevOps.md',c:4,l:2,r:'服务端'},
+  // 5.管理能力
+  {t:'管理能力',p:'mds/5.管理能力/5.管理能力.md',c:5,l:0,r:''},
+  {t:'工作流',p:'mds/5.管理能力/5.1.工作流.md',c:5,l:0,r:''},
+  {t:'系统开发工作流',p:'mds/5.管理能力/5.1.1.系统开发工作流.md',c:5,l:2,r:'客户端,服务端'},
+  {t:'UI制作工作流',p:'mds/5.管理能力/5.1.2.UI制作工作流.md',c:5,l:2,r:'客户端'},
+  {t:'更多开发工作流',p:'mds/5.管理能力/5.1.3.更多开发工作流.md',c:5,l:2,r:'客户端,服务端'},
+  {t:'质量保障',p:'mds/5.管理能力/5.2.质量保障.md',c:5,l:0,r:''},
+  {t:'代码质量管理',p:'mds/5.管理能力/5.2.1.代码质量管理.md',c:5,l:2,r:'客户端,服务端'},
+  {t:'产品质量管理',p:'mds/5.管理能力/5.2.2.产品质量管理.md',c:5,l:2,r:'客户端,服务端'},
+  {t:'项目管理',p:'mds/5.管理能力/5.3.项目管理.md',c:5,l:0,r:''},
+  {t:'项目里程',p:'mds/5.管理能力/5.3.1.项目里程.md',c:5,l:2,r:'客户端,服务端'},
+  {t:'版本管理',p:'mds/5.管理能力/5.3.2.版本管理.md',c:5,l:2,r:'客户端,服务端'},
+  {t:'SCRUM',p:'mds/5.管理能力/5.3.3.SCRUM.md',c:5,l:2,r:'客户端,服务端'},
+  {t:'团队与组织',p:'mds/5.管理能力/5.3.4.团队与组织.md',c:5,l:2,r:'客户端,服务端'},
+  {t:'团队管理',p:'mds/5.管理能力/5.3.5.团队管理.md',c:5,l:2,r:'客户端,服务端'},
+  {t:'项目管理综合',p:'mds/5.管理能力/5.3.6.项目管理综合.md',c:5,l:2,r:'客户端,服务端'},
+  // 6.运营能力
+  {t:'运营能力',p:'mds/6.运营能力/6.运营能力.md',c:6,l:0,r:''},
+  {t:'运维技术',p:'mds/6.运营能力/6.1.运维技术.md',c:6,l:0,r:''},
+  {t:'网络维护',p:'mds/6.运营能力/6.1.1.网络维护.md',c:6,l:2,r:'服务端'},
+  {t:'数据存储',p:'mds/6.运营能力/6.1.2.数据存储.md',c:6,l:2,r:'服务端'},
+  {t:'资产管理',p:'mds/6.运营能力/6.1.3.资产管理.md',c:6,l:2,r:'服务端'},
+  {t:'Linux系统',p:'mds/6.运营能力/6.1.4.Linux系统.md',c:6,l:2,r:'服务端'},
+  {t:'中间件运维',p:'mds/6.运营能力/6.1.5.中间件运维.md',c:6,l:3,r:'服务端'},
+  {t:'网络安全',p:'mds/6.运营能力/6.1.6.网络安全.md',c:6,l:3,r:'服务端'},
+  {t:'产品运营支持',p:'mds/6.运营能力/6.2.产品运营支持.md',c:6,l:0,r:''},
+  {t:'GM后台',p:'mds/6.运营能力/6.2.1.GM后台.md',c:6,l:2,r:'服务端'},
+  {t:'数据统计分析',p:'mds/6.运营能力/6.2.2.数据统计分析.md',c:6,l:2,r:'服务端'},
+  {t:'产品热更新',p:'mds/6.运营能力/6.2.3.产品热更新.md',c:6,l:2,r:'客户端,服务端'},
+  {t:'产品本地化',p:'mds/6.运营能力/6.2.4.产品本地化.md',c:6,l:2,r:'客户端,服务端'},
+  {t:'开发配合',p:'mds/6.运营能力/6.2.5.开发配合.md',c:6,l:2,r:'客户端,服务端'},
+  {t:'AI助力游戏运营',p:'mds/6.运营能力/6.2.6.AI助力游戏运营.md',c:6,l:2,r:'客户端,服务端'},
+  {t:'产品商业化',p:'mds/6.运营能力/6.3.产品商业化.md',c:6,l:0,r:''},
+  {t:'游戏安全',p:'mds/6.运营能力/6.3.1.游戏安全.md',c:6,l:3,r:'服务端'},
+  {t:'帐号与支付',p:'mds/6.运营能力/6.3.2.帐号与支付.md',c:6,l:2,r:'服务端'},
+  {t:'第三方服务',p:'mds/6.运营能力/6.3.3.第三方服务.md',c:6,l:2,r:'服务端'},
+  {t:'产品合规',p:'mds/6.运营能力/6.3.4.产品合规.md',c:6,l:2,r:'客户端,服务端'},
+];
+
+const MODULE_NAMES = ['基础能力','技术能力','研发能力','生产能力','管理能力','运营能力'];
+const MODULE_COLORS = ['#f85149','#d2991d','#e3b341','#3fb950','#58a6ff','#bc8cff'];
+const LEVEL_LABELS = ['','初级','中级','高级'];
+
+// ============================================================
+//  TREE CONSTRUCTION
+// ============================================================
+function parseDepth(path) {
+  const filename = path.split('/').pop().replace('.md','');
+  const parts = filename.split('.');
+  let d = 0;
+  for (const p of parts) { if (/^\d+$/.test(p)) d++; else break; }
+  return d - 1; // 0=root, 1=category, 2=leaf
+}
+
+let allRoots = []; // array of root nodes
+
+function buildTree() {
+  const roots = [];
+  const stack = [];
+  for (const doc of DOCS) {
+    const depth = parseDepth(doc.p);
+    if (depth < 0) continue;
+    const node = {
+      name: doc.t,
+      path: doc.p,
+      level: doc.l,
+      module: doc.c - 1,
+      children: [],
+      collapsed: false,
+      depth: depth,
+      x: 0, y: 0,
+      _width: 1,
+    };
+    while (stack.length > depth) stack.pop();
+    if (depth === 0) {
+      roots.push(node);
+      stack.length = 0;
+      stack.push(node);
+    } else {
+      if (stack.length > 0) {
+        stack[stack.length - 1].children.push(node);
+      }
+      stack.push(node);
+    }
+  }
+  allRoots = roots;
+  return roots;
+}
+
+// ============================================================
+//  LAYOUT ALGORITHM
+// ============================================================
+const UNIT_W = 135;   // horizontal pixels per leaf unit
+const LEVEL_H = 105;  // vertical pixels per level
+const TREE_GAP = 160; // gap between trees
+
+function computeWidth(node) {
+  if (node.children.length === 0 || node.collapsed) {
+    node._width = 1;
+    return 1;
+  }
+  let w = 0;
+  for (const c of node.children) w += computeWidth(c);
+  node._width = w;
+  return w;
+}
+
+function assignPositions(node, x, y) {
+  node.x = x;
+  node.y = y;
+  if (node.children.length === 0 || node.collapsed) return;
+  const totalPx = (node._width - 1) * UNIT_W;
+  let startX = x - totalPx / 2;
+  for (const child of node.children) {
+    const childPx = (child._width - 1) * UNIT_W;
+    const cx = startX + childPx / 2;
+    assignPositions(child, cx, y + LEVEL_H);
+    startX += child._width * UNIT_W;
+  }
+}
+
+function layoutAll() {
+  // Compute widths
+  for (const root of allRoots) computeWidth(root);
+  // Layout each tree independently starting at x=0
+  for (const root of allRoots) assignPositions(root, 0, 0);
+  // Compute bounding boxes and stack trees horizontally
+  let offsetX = 0;
+  for (const root of allRoots) {
+    const bbox = computeBBox(root);
+    const shift = offsetX - bbox.minX;
+    shiftTree(root, shift, 0);
+    offsetX += (bbox.maxX - bbox.minX) + TREE_GAP;
+  }
+  offsetX -= TREE_GAP; // remove last gap
+  return offsetX;
+}
+
+function computeBBox(node) {
+  let minX = node.x, maxX = node.x, minY = node.y, maxY = node.y;
+  function walk(n) {
+    if (n.x < minX) minX = n.x;
+    if (n.x > maxX) maxX = n.x;
+    if (n.y < minY) minY = n.y;
+    if (n.y > maxY) maxY = n.y;
+    if (!n.collapsed) for (const c of n.children) walk(c);
+  }
+  walk(node);
+  return { minX, maxX, minY, maxY };
+}
+
+function shiftTree(node, dx, dy) {
+  node.x += dx;
+  node.y += dy;
+  for (const c of node.children) shiftTree(c, dx, dy);
+}
+
+function flattenTree(roots) {
+  const nodes = [];
+  function walk(n) {
+    nodes.push(n);
+    if (!n.collapsed) for (const c of n.children) walk(c);
+  }
+  for (const r of roots) walk(r);
+  return nodes;
+}
+
+// ============================================================
+//  RENDERING
+// ============================================================
+const wrap = document.getElementById('wrap');
+const canvas = document.getElementById('canvas');
+const edgesSvg = document.getElementById('edges');
+const tooltip = document.getElementById('tooltip');
+
+let nodeEls = new Map(); // node -> DOM element
+
+function renderAll() {
+  // Clear
+  for (const el of nodeEls.values()) el.remove();
+  nodeEls.clear();
+  edgesSvg.innerHTML = '';
+
+  const allNodes = flattenTree(allRoots);
+  if (allNodes.length === 0) return;
+
+  // Compute total bounding box for SVG
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+  for (const n of allNodes) {
+    if (n.x < minX) minX = n.x;
+    if (n.x > maxX) maxX = n.x;
+    if (n.y < minY) minY = n.y;
+    if (n.y > maxY) maxY = n.y;
+  }
+  const pad = 200;
+  const svgW = maxX - minX + pad * 2;
+  const svgH = maxY - minY + pad * 2;
+  edgesSvg.style.width = svgW + 'px';
+  edgesSvg.style.height = svgH + 'px';
+  edgesSvg.style.left = (minX - pad) + 'px';
+  edgesSvg.style.top = (minY - pad) + 'px';
+  edgesSvg.setAttribute('viewBox', `0 0 ${svgW} ${svgH}`);
+
+  // Draw edges
+  let edgeHtml = '';
+  for (const n of allNodes) {
+    if (n.collapsed) continue;
+    for (const child of n.children) {
+      const x1 = n.x - minX + pad;
+      const y1 = n.y - minY + pad;
+      const x2 = child.x - minX + pad;
+      const y2 = child.y - minY + pad;
+      const mx = (x1 + x2) / 2;
+      const pathD = `M${x1},${y1} C${x1},${(y1+y2)/2} ${x2},${(y1+y2)/2} ${x2},${y2}`;
+      edgeHtml += `<path class="edge-line" d="${pathD}" data-parent="${n.name}" data-child="${child.name}"/>`;
+    }
+  }
+  edgesSvg.innerHTML = edgeHtml;
+
+  // Draw nodes
+  for (const n of allNodes) {
+    const div = document.createElement('div');
+    div.className = `node d${n.depth} m${n.module}`;
+    if (n.depth === 1 && n.children.length > 0) {
+      div.classList.add('has-children');
+      if (n.collapsed) div.classList.add('collapsed');
+    }
+    div.style.left = n.x + 'px';
+    div.style.top = n.y + 'px';
+    div.dataset.path = n.path;
+    div.dataset.name = n.name;
+    div.dataset.module = n.module;
+    div.dataset.depth = n.depth;
+
+    // Badge for difficulty level
+    let badgeHtml = '';
+    if (n.level > 0 && n.depth > 0) {
+      badgeHtml = `<span class="badge l${n.level}">${LEVEL_LABELS[n.level]}</span>`;
+    }
+    div.innerHTML = badgeHtml + n.name;
+
+    // Events
+    div.addEventListener('click', (e) => onNodeClick(n, e));
+    div.addEventListener('dblclick', (e) => onNodeDblClick(n, e));
+    div.addEventListener('mouseenter', (e) => onNodeHover(n, div, e));
+    div.addEventListener('mouseleave', () => { tooltip.classList.remove('show'); });
+
+    canvas.appendChild(div);
+    nodeEls.set(n, div);
+  }
+
+  // Update canvas size
+  canvas.style.width = (maxX - minX + pad * 2) + 'px';
+  canvas.style.height = (maxY - minY + pad * 2) + 'px';
+}
+
+// ============================================================
+//  INTERACTION
+// ============================================================
+let scale = 0.65;
+let tx = 0, ty = 0;
+let activeModule = -1; // -1 = all
+
+function updateTransform() {
+  canvas.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+}
+
+function onNodeClick(node, e) {
+  e.stopPropagation();
+  if (node.children.length === 0) return; // leaf, do nothing on single click
+
+  node.collapsed = !node.collapsed;
+  layoutAll();
+  renderAll();
+  updateTransform();
+}
+
+function onNodeDblClick(node, e) {
+  e.stopPropagation();
+  e.preventDefault();
+  window.open('../' + node.path, '_blank');
+}
+
+function onNodeHover(node, el, e) {
+  const rect = el.getBoundingClientRect();
+  tooltip.innerHTML = `<strong>${node.name}</strong><div class="tt-path">${node.path}</div>`;
+  tooltip.style.left = (rect.right + 8) + 'px';
+  tooltip.style.top = rect.top + 'px';
+  tooltip.classList.add('show');
+}
+
+// ── Zoom / Pan ──
+let isDragging = false;
+let dragStartX = 0, dragStartY = 0;
+let dragTx = 0, dragTy = 0;
+
+wrap.addEventListener('mousedown', (e) => {
+  if (e.target.closest('.node')) return; // let node handle it
+  isDragging = true;
+  wrap.classList.add('grabbing');
+  dragStartX = e.clientX;
+  dragStartY = e.clientY;
+  dragTx = tx;
+  dragTy = ty;
+});
+
+window.addEventListener('mousemove', (e) => {
+  if (!isDragging) return;
+  tx = dragTx + (e.clientX - dragStartX);
+  ty = dragTy + (e.clientY - dragStartY);
+  updateTransform();
+});
+
+window.addEventListener('mouseup', () => {
+  isDragging = false;
+  wrap.classList.remove('grabbing');
+});
+
+wrap.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  const rect = wrap.getBoundingClientRect();
+  const mouseX = e.clientX - rect.left;
+  const mouseY = e.clientY - rect.top;
+
+  const oldScale = scale;
+  const factor = e.deltaY < 0 ? 1.08 : 1 / 1.08;
+  scale = Math.max(0.1, Math.min(3, scale * factor));
+
+  // Zoom towards cursor
+  tx = mouseX - (mouseX - tx) * (scale / oldScale);
+  ty = mouseY - (mouseY - ty) * (scale / oldScale);
+  updateTransform();
+}, { passive: false });
+
+// ── Touch support ──
+let touchStartDist = 0;
+let touchStartScale = 0;
+let touchStartTx = 0, touchStartTy = 0;
+let touchMidX = 0, touchMidY = 0;
+
+wrap.addEventListener('touchstart', (e) => {
+  if (e.touches.length === 1) {
+    isDragging = true;
+    dragStartX = e.touches[0].clientX;
+    dragStartY = e.touches[0].clientY;
+    dragTx = tx;
+    dragTy = ty;
+  } else if (e.touches.length === 2) {
+    isDragging = false;
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    touchStartDist = Math.sqrt(dx*dx + dy*dy);
+    touchStartScale = scale;
+    touchStartTx = tx;
+    touchStartTy = ty;
+    touchMidX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+    touchMidY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+  }
+}, { passive: false });
+
+wrap.addEventListener('touchmove', (e) => {
+  if (e.touches.length === 1 && isDragging) {
+    tx = dragTx + (e.touches[0].clientX - dragStartX);
+    ty = dragTy + (e.touches[0].clientY - dragStartY);
+    updateTransform();
+  } else if (e.touches.length === 2) {
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    const newScale = Math.max(0.1, Math.min(3, touchStartScale * (dist / touchStartDist)));
+    const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+    const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+    const rect = wrap.getBoundingClientRect();
+    const cx = midX - rect.left;
+    const cy = midY - rect.top;
+    tx = cx - (cx - touchStartTx) * (newScale / touchStartScale);
+    ty = cy - (cy - touchStartTy) * (newScale / touchStartScale);
+    scale = newScale;
+    updateTransform();
+  }
+}, { passive: false });
+
+wrap.addEventListener('touchend', () => { isDragging = false; });
+
+// ── Button Controls ──
+document.getElementById('btn-zoom-in').addEventListener('click', () => {
+  scale = Math.min(3, scale * 1.2);
+  updateTransform();
+});
+document.getElementById('btn-zoom-out').addEventListener('click', () => {
+  scale = Math.max(0.1, scale / 1.2);
+  updateTransform();
+});
+document.getElementById('btn-reset').addEventListener('click', resetView);
+
+// ── Double-click on canvas background to reset ──
+wrap.addEventListener('dblclick', (e) => {
+  if (e.target === wrap || e.target === canvas) {
+    resetView();
+  }
+});
+
+// ============================================================
+//  MODULE TABS
+// ============================================================
+function buildTabs() {
+  const tabsEl = document.getElementById('tabs');
+  let html = `<span class="tab active m-all" data-module="-1">全部</span>`;
+  for (let i = 0; i < MODULE_NAMES.length; i++) {
+    html += `<span class="tab m${i}" data-module="${i}">${MODULE_NAMES[i]}</span>`;
+  }
+  tabsEl.innerHTML = html;
+
+  tabsEl.addEventListener('click', (e) => {
+    const tab = e.target.closest('.tab');
+    if (!tab) return;
+    const mod = parseInt(tab.dataset.module);
+    activeModule = mod;
+
+    // Update active class
+    tabsEl.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+
+    // Filter nodes visibility
+    filterByModule(mod);
+  });
+}
+
+function filterByModule(mod) {
+  const allNodes = flattenTree(allRoots);
+  for (const [node, el] of nodeEls) {
+    if (mod === -1 || node.module === mod) {
+      el.style.display = '';
+    } else {
+      el.style.display = 'none';
+    }
+  }
+
+  // Filter edges
+  const edgePaths = edgesSvg.querySelectorAll('.edge-line');
+  for (const edge of edgePaths) {
+    const parentName = edge.dataset.parent;
+    const childName = edge.dataset.child;
+    // Find parent node
+    const parentNode = allNodes.find(n => n.name === parentName);
+    if (mod === -1 || (parentNode && parentNode.module === mod)) {
+      edge.style.display = '';
+    } else {
+      edge.style.display = 'none';
+    }
+  }
+
+  // If filtering to a single module, center it
+  if (mod !== -1) {
+    const root = allRoots[mod];
+    if (root) {
+      const bbox = computeBBox(root);
+      const wrapRect = wrap.getBoundingClientRect();
+      const cx = (bbox.minX + bbox.maxX) / 2;
+      const cy = (bbox.minY + bbox.maxY) / 2;
+      tx = wrapRect.width / 2 - cx * scale;
+      ty = wrapRect.height / 2 - cy * scale;
+    }
+  } else {
+    // Fit all
+    fitToScreen();
+  }
+  updateTransform();
+}
+
+// ============================================================
+//  VIEW MANAGEMENT
+// ============================================================
+function fitToScreen() {
+  const allNodes = flattenTree(allRoots);
+  if (allNodes.length === 0) return;
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+  for (const n of allNodes) {
+    if (n.x < minX) minX = n.x;
+    if (n.x > maxX) maxX = n.x;
+    if (n.y < minY) minY = n.y;
+    if (n.y > maxY) maxY = n.y;
+  }
+  const pad = 100;
+  const cw = maxX - minX + pad * 2;
+  const ch = maxY - minY + pad * 2;
+  const wrapRect = wrap.getBoundingClientRect();
+  const sx = wrapRect.width / cw;
+  const sy = wrapRect.height / ch;
+  scale = Math.min(sx, sy, 0.8);
+  tx = (wrapRect.width - cw * scale) / 2 - (minX - pad) * scale;
+  ty = (wrapRect.height - ch * scale) / 2 - (minY - pad) * scale;
+  updateTransform();
+}
+
+function resetView() {
+  activeModule = -1;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  const allTab = document.querySelector('.tab[data-module="-1"]');
+  if (allTab) allTab.classList.add('active');
+  // Uncollapse all
+  for (const root of allRoots) collapseAll(root, false);
+  layoutAll();
+  renderAll();
+  fitToScreen();
+  // Show all nodes
+  for (const [node, el] of nodeEls) el.style.display = '';
+  const edgePaths = edgesSvg.querySelectorAll('.edge-line');
+  for (const edge of edgePaths) edge.style.display = '';
+}
+
+function collapseAll(node, state) {
+  node.collapsed = state;
+  for (const c of node.children) collapseAll(c, state);
+}
+
+// ============================================================
+//  KEYBOARD SHORTCUTS
+// ============================================================
+window.addEventListener('keydown', (e) => {
+  switch (e.key) {
+    case '0': resetView(); break;
+    case '+': case '=': scale = Math.min(3, scale * 1.2); updateTransform(); break;
+    case '-': scale = Math.max(0.1, scale / 1.2); updateTransform(); break;
+    case 'r': case 'R': resetView(); break;
+  }
+});
+
+// ============================================================
+//  INIT
+// ============================================================
+function init() {
+  buildTree();
+  layoutAll();
+  buildTabs();
+  renderAll();
+  // Delay fit to ensure layout is computed
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      fitToScreen();
+    });
+  });
+}
+
+// Run on load to ensure proper dimensions
+if (document.readyState === 'loading') {
+  window.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
+
+// Re-fit on resize
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    if (activeModule === -1) fitToScreen();
+  }, 200);
+});
+</script>
+</body>
+</html>

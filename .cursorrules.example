@@ -1,0 +1,187 @@
+# 使用方法：复制此文件到你的游戏项目根目录，重命名为 .cursorrules
+# 根据你的项目修改标记为 【TODO】 的部分
+#
+# =============================================================================
+# 游戏开发项目 Cursor AI 规则模板
+# 适用场景：Unity / Unreal / 自研引擎 / C++游戏服务器
+# =============================================================================
+
+# =============================================================================
+# 1. 项目类型选择区 —— 取消注释你使用的引擎/框架，删除不适用的部分
+# =============================================================================
+
+## ── Unity 项目 ──
+# - 使用 C#，遵循 Unity C# 编码规范
+# - 序列化字段用 [SerializeField] private，避免 public 字段
+# - MonoBehaviour 生命周期：Awake → OnEnable → Start → Update → LateUpdate → OnDisable → OnDestroy
+# - 协程用 StartCoroutine / StopCoroutine，避免在 Update 中写大循环
+# - 使用 Addressables 或 AssetBundle 管理资源，不要用 Resources.Load
+# - UI 操作用 Canvas 主线程，子线程结果必须回到主线程应用
+
+## ── Unreal 项目 ──
+# - 使用 C++ 和 Blueprint，遵循 Epic Games 编码标准
+# - 类名前缀：A(Actor)、U(UObject)、F(结构体)、I(接口)、E(枚举)、T(模板)
+# - 成员变量用 UPROPERTY() 暴露给蓝图，函数用 UFUNCTION()
+# - 避免在 Tick() 中做重计算，用 Timer 或事件驱动替代
+# - 使用 GameplayAbilitySystem (GAS) 做技能/战斗逻辑
+# - 资源引用用 TSoftObjectPtr 做延迟加载，减少启动加载时间
+
+## ── 自研引擎 / C++ 游戏客户端 ──
+# - C++17 或更新标准，CMake 构建
+# - 渲染后端：Vulkan / DX12 / Metal（【TODO: 你的选择】）
+# - 帧循环：固定时间步长逻辑 + 可变帧率渲染
+# - 使用 ECS (Entity-Component-System) 或自定义游戏对象模型
+
+## ── C++ 游戏服务器 ──
+# - C++17/20，CMake 构建
+# - 网络库：ASIO / libuv / 自研
+# - 单线程事件循环 or 多线程 Actor 模型
+# - 协议：Protobuf / FlatBuffers / Cap'n Proto（【TODO: 你的选择】）
+# - 数据库：Redis + MySQL/PostgreSQL（【TODO: 你的选择】）
+
+# =============================================================================
+# 2. 代码规范
+# =============================================================================
+
+## 2.1 命名规范
+# - 类名：PascalCase（如 PlayerController、EnemyAI）
+# - 函数/方法：PascalCase（Unity）或 PascalCase（Unreal）
+# - 局部变量：camelCase（如 currentHealth、targetPosition）
+# - 成员变量：_camelCase（Unity C#）、CamelCase（Unreal C++）、m_camelCase（自研 C++）
+# - 静态变量：s_camelCase
+# - 常量/宏：ALL_CAPS（如 MAX_PLAYERS、GRAVITY）
+# - 布尔变量：isXxx / hasXxx / canXxx / bXxx（Unreal 风格）
+# - 接口：前缀 I（如 IDamageable、IInteractable）
+# - 枚举值：前缀枚举类型名简写（如 EWeaponType_Melee）
+
+## 2.2 注释规范
+# - 每个 public 方法必须有 XML/Doxygen 注释，说明参数和返回值
+# - 复杂算法必须注释原理，而不是复述代码
+# - 用 // TODO: 【负责人】 标记待办事项
+# - 用 // FIXME: 标记已知问题
+# - 用 // HACK: 标记临时方案，并注明原因
+# - 魔法数字必须注释含义，或用命名常量替代
+# - 不要在注释里写废话（如 // 加1 然后写 i++）
+
+## 2.3 文件组织
+# - 一个文件一个主要类（辅助小枚举可放一起）
+# - 目录结构按功能模块划分，不要按类类型（避免 all Scripts/ 扁平化）
+#   推荐结构：
+#   ├── Core/           # 引擎核心、游戏模式、GameInstance
+#   ├── Gameplay/       # 游戏逻辑
+#   │   ├── Player/
+#   │   ├── Enemy/
+#   │   ├── Weapon/
+#   │   └── Pickup/
+#   ├── UI/             # UI 相关
+#   ├── Audio/          # 音频
+#   ├── Network/        # 网络相关
+#   ├── Data/           # 数据定义、ScriptableObject/DataTable
+#   ├── System/         # 子系统（存档、成就、输入）
+#   └── Util/           # 工具类和扩展方法
+# - ScriptableObject / DataAsset 放在 Data/ 目录
+
+# =============================================================================
+# 3. 游戏开发特定规则（性能与架构）
+# =============================================================================
+
+## 3.1 内存与分配
+# - 🚫 严禁在 Update / Tick / 渲染回调中 new 对象或装箱
+# - 🚫 严禁在热路径中使用 LINQ / STL 分配容器的操作
+# - ✅ 优先使用对象池（GameObject Pool / Object Pool / TObjectPool）
+# - ✅ 结构体尽量用 struct（C#）/ 栈分配（C++），减少 GC / heap 压力
+# - ✅ 字符串拼接用 StringBuilder / ostringstream，不要循环 + 
+# - ✅ 集合类预分配容量：new List<T>(expectedCapacity)
+# - ✅ 频繁使用的临时容器声明为成员变量，Clear() 复用
+
+## 3.2 对象池规范
+# - 所有在运行时频繁创建/销毁的对象必须使用对象池：
+#   - 子弹/弹幕（Bullet）
+#   - 粒子特效（VFX）
+#   - 伤害数字（Damage Number）
+#   - 音效播放器（Audio Source）
+#   - UI 列表项（List Item）
+# - 池对象必须实现 Reset() 方法，回到初始状态
+# - 池对象取用时显式初始化，归还时显式清理引用
+
+## 3.3 更新循环优化
+# - 能用事件/回调就不要每帧轮询
+# - 不必要时用 FixedUpdate / Physics Update 而不是 Update
+# - 远离玩家的实体降低更新频率（LOD 更新 / 分帧更新）
+# - 大量同类单位用 DOTS / ECS / Job System 批量处理
+# - 关闭不可见物体的 Update（OnBecameVisible / OnBecameInvisible）
+# - Animation 组件在不可见时暂停
+
+## 3.4 资源管理
+# - 异步加载，绝不同步加载阻塞主线程
+# - 场景异步加载：LoadSceneAsync + 加载画面
+# - 及时卸载不用的资源：Resources.UnloadUnusedAssets() / UnloadAsset
+# - 纹理压缩格式按平台选择（ASTC / ETC2 / DXT5）
+# - 音频按类型分池管理（BGM 流式、SFX 常驻、语音按需）
+
+## 3.5 网络/多人游戏
+# - 权威逻辑放服务器，客户端只做表现和预测
+# - RPC 参数尽量少，大块数据用属性同步
+# - 用 NetworkVariable / Replicated 标记同步属性
+# - 客户端预测 + 服务器和解（Client-Side Prediction + Reconciliation）
+
+# =============================================================================
+# 4. AI 协作提示（Cursor 专用）
+# =============================================================================
+
+## 4.1 代码生成规则
+# - ALWAYS show before/after code when suggesting changes. 提供完整上下文。
+# - 生成代码时优先使用项目中已有的工具类和宏，保持风格一致。
+# - Explain performance impact of your suggestions, especially in hot paths.
+# - 如果建议涉及 GC 分配，必须明确指出。
+# - Prefer composition over inheritance.
+# - 新功能优先用接口抽象，方便后续替换实现。
+# - 错误处理不要吞异常，至少 LogError / UE_LOG。
+# - 涉及 Unity API 的代码要标明在哪个生命周期方法中调用。
+
+## 4.2 代码审查规则
+# - 检查所有 public 方法是否有空引用保护
+# - 检查 Coroutine / 异步操作是否有取消机制
+# - 检查是否有隐藏的装箱操作（如 object.Equals、foreach 旧版）
+# - 检查 MonoBehaviour 中是否缓存了 GetComponent / Find 结果
+# - 检查事件订阅是否有对应的取消订阅
+
+## 4.3 回答风格
+# - 代码示例要完整可运行，不要省略 using / #include
+# - 分步骤说明复杂操作，每步说明原因
+# - 提及 API 时附带 Unity / Unreal 版本差异说明
+# - 给出多个方案时，说明各自优劣和适用场景
+
+# =============================================================================
+# 5. 测试规范
+# =============================================================================
+
+## 5.1 单元测试
+# - 纯逻辑代码必须有单元测试（算法、数据结构、状态机）
+# - 测试框架：Unity Test Framework / Unreal Automation System / GoogleTest
+# - 测试命名：【被测方法_场景_预期结果】（如 Damage_HealthZero_TriggerDeath）
+# - Arrange → Act → Assert 三段式
+# - 不要依赖 Unity MonoBehaviour 的测试放 PlayMode，其他放 EditMode
+
+## 5.2 集成/功能测试
+# - 核心玩法流程必须有自动化测试脚本
+# - 网络同步必须有延迟/丢包模拟测试
+# - 性能敏感模块必须有性能回归测试（基准对比）
+
+## 5.3 性能测试
+# - 热点路径用 Profiler 标记：Profiler.BeginSample("Name") / TRACE_CPUPROFILER_EVENT_SCOPE
+# - 帧时间预算：【TODO: 如 16ms (60fps) / 33ms (30fps)】
+# - GC 分配预算：【TODO: 如 每帧 < 1KB 或 零分配】
+# - 内存上限：【TODO: 如 PC 8GB / Mobile 2GB / 主机 5GB】
+
+# =============================================================================
+# 6. 项目自定义规则区
+# =============================================================================
+
+## 【TODO: 在此添加你的项目特定规则，例如：】
+# - 使用 [YourProject] 命名空间
+# - 日志必须用自定义 Log 系统，不要直接用 Debug.Log / UE_LOG
+# - UI 必须走 UI 框架，不能直接操作 UI 组件
+# - 敏感配置数据走配置表，不能硬编码
+# - 战斗公式统一放在 CombatFormula.cs / CombatFormula.h
+# - 资源命名规范：【TODO: 如 UI_Icon_xxx, SFX_xxx, VFX_xxx】

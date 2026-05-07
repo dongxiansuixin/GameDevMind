@@ -15,6 +15,10 @@
     <a href="mds/阅读说明.md">阅读说明</a>
     &nbsp;|&nbsp;
     <a href="https://gonglei007.github.io/GameDevMind/nav/">🔍 交互式导航</a>
+    &nbsp;|&nbsp;
+    <a href="https://gonglei007.github.io/GameDevMind/nav/panorama.html">🗺️ 全景图</a>
+    &nbsp;|&nbsp;
+    <strong>Powered by <a href="https://www.gltop.com?from=gamedevmind">GLTOP</a></strong>
   </p>
 </p>
 
@@ -188,6 +192,22 @@
 
 ---
 
+## 🤖 AI 实战对话
+
+> 💬 真实的 AI 协作过程——包含 prompt、AI 输出、人工修正和最终成果
+
+| 对话 | AI 工具 | 场景 |
+|------|---------|------|
+| [用 Claude 设计内存池](ai-cases/cpp-memory-pool.md) | Claude | C++ 服务器内存池，从初版到 ARM 对齐修正 |
+| [用 Cursor 优化 Draw Call](ai-cases/unity-drawcall-optimization.md) | Cursor | Unity 项目从 3200 Draw Call 降到 480 |
+| [用 ChatGPT 设计缓存方案](ai-cases/go-leaderboard-cache.md) | ChatGPT | Go 排行榜查询从 5s 优化到 8ms |
+
+> 🛠️ 附：[.cursorrules 游戏开发模板](.cursorrules.example) · [CLAUDE.md 项目记忆模板](CLAUDE.md.example)
+
+[📂 查看全部 AI 对话 →](ai-cases/README.md)
+
+---
+
 ## 🧑‍💻 游戏程序员职业发展路径
 
 <table width="100%" border=1 style="border-collapse: collapse;">
@@ -291,10 +311,15 @@
 
 <div align="center">
 
-**📮 Email:** [gonglei@gltop.com](mailto:gonglei@gltop.com)
+**GLTOP** — 游戏研发技术中台
 
-**💬 微信:**
-<br/>
-<img src="images/联系人-G.L.png?raw=true" alt="微信二维码" width="96"/>
+> 提供游戏开发技术咨询、团队培训、项目技术方案评估等服务
+
+| 方式 | 信息 |
+|------|------|
+| 🌐 官网 | [gltop.com](https://www.gltop.com?from=gamedevmind) |
+| 📮 邮箱 | [gonglei@gltop.com](mailto:gonglei@gltop.com) |
+| 💬 微信 | ![](images/联系人-G.L.png?raw=true) |
+| 🗣️ QQ群 | [242500383](https://qm.qq.com/cgi-bin/qm/qr?k=fy4Z65nE-5Jd1ay8FkJpDc9iPJyW3d38&jump_from=webapi) |
 
 </div>
